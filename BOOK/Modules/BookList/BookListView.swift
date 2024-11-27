@@ -7,11 +7,14 @@ struct DirectoryItem: Identifiable {
     let description: String
     let tags: [String]
 }
+struct ItemDescription: Decodable{
+    var description: String
+    var tags:[String]
+}
 
 struct BookListView: View {
+    @State var items: [DirectoryItem] = []
     var body: some View {
-
-        @State private var items: [DirectoryItem] = []
 
         VStack{
             ScrollView {
@@ -26,7 +29,7 @@ struct BookListView: View {
                                 .resizable()
                                 .frame(width: 50, height: 50)
                                 .clipShape(Circle())
-                            
+                           
                             // Text information
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(item.name)
@@ -53,12 +56,12 @@ struct BookListView: View {
         //shuffling beetween views
         TabView {
             Tab("Your Books", systemImage: "BookIcon") {
-        BookView()
+        //BookView()
         }
             Tab("Your Reviews", systemImage: "BookIcon") {
         BookListView()
         }
-        
+       
             Tab("Your Goals", systemImage: "ListIcon") {
         GoalsView()
         }
@@ -68,36 +71,49 @@ struct BookListView: View {
         }
 
         }
+       
     }
-}
-
     func loadDirectoryItems() {
-        @State private var commons = Commons()
+        let fm = FileManager.default
+
+        guard let BaseDataURL = fm.urls(for: .documentDirectory, //base url for storing data such as reviews or goals
+                                             in:.userDomainMask).first else
+                {
+                    return
+                }
+
+        let ReadBooksURL=BaseDataURL.appendingPathComponent("ReadBooks") //base directory for storing reviews
         do {
             // Get the list of directories in the base URL
-            let directories = try commons.fm.contentsOfDirectory(at: Commons.ReadBooksURL, includingPropertiesForKeys: nil)
-            
+            let directories = try fm.contentsOfDirectory(at: ReadBooksURL, includingPropertiesForKeys: nil)
+           
             // Iterate over each directory
             for directory in directories {
-                if directory.hasDirectoryPath && directory!=".DS_Store" {
-                    let name = directory.lastPathComponent
-                    
+                if directory.hasDirectoryPath && directory.lastPathComponent != ".DS_Store" {
+                    var name = directory.lastPathComponent
+                   
                     // Load the image
                     let imageFileURL = directory.appendingPathComponent("\(name).png")
-                    let image: Image = Commons.fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
-                    
+                    let image: Image = fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
+                   
                     // Load the description
+                    name=name.lowercased()
                     let descriptionFileURL = directory.appendingPathComponent("\(name)_data.json")
+                    //print(descriptionFileURL)
                     var description = "No description available"
+                    var tags:[String] = []
                     if let jsonData = FileManager.default.contents(atPath: descriptionFileURL.path) {
-                        if let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: String] {
-                            description = jsonObject["description"] ?? description
-                            tags = jsonObject["tags"] ?? tags
+                        let decoder = JSONDecoder()
+                        do {
+                            let decoded = try decoder.decode(ItemDescription.self,from:  jsonData)
+                            description=decoded.description
+                            tags=decoded.tags
                         }
+                        catch{print("\(error)")}
                     }
-                    
+                   
                     // Append to items
-                    items.append(DirectoryItem(name: name, image: image, description: description))
+                    items.append(DirectoryItem(name: name, image: image, description: description,tags:tags))
                 }
             }
         } catch {
@@ -106,6 +122,7 @@ struct BookListView: View {
     }
 }
 
+
 #Preview{
-    GoalsView()
+    BookListView()
 }
