@@ -12,53 +12,58 @@ struct GoalItem: Identifiable {
     let name: String
     let image: Image
     let completed: Double
-    let url:String
+    let url:URL
 }
 struct ItemDescription: Decodable{
-    var completed: String
+    var completed: Int
     var books:[String]
+    var status:[Bool]
 }
 struct GoalsView: View {
+    @State var items: [GoalItem] = []
+    @State private var loaded = false
     var body: some View {
-       @State var items: [GoalItems] = []
-       @State private var loaded = false
         NavigationView{
-                VStack{
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 16) {
-                            ForEach(items) { item in
-                                NavigationLink(destination: IndGoalView(
-                                    image: item.image,
-                                    books: item.books
-                                    )) {
-                                    VStack {
-                                        // Image
-                                        item.image
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .clipShape(Circle())
-                                         Text(item.name)
-                                         .font(.headline)
+            VStack{
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(items) { item in
+                            NavigationLink(destination: IndGoalView(
+                                directoryURL:item.url
+                            )) {
+                                VStack {
+                                    // Image
+                                    item.image
+                                        .resizable()
+                                        .scaledToFit()
+                                            .frame(
+                                                minWidth: 0,
+                                                maxWidth: .infinity,
+                                                minHeight: 100,
+                                                maxHeight: 100
+                                        )
+                                        
+                                    Text(item.name)
+                                        .font(.headline)
                                     ProgressView(value:item.completed)
-                                        Spacer()
-                                    }
-                                    .padding()
-                                    .frame(width: 300, height: 80)
-                                    .background(Color.white)
-                                    .cornerRadius(10)
-                                    .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                                    Spacer()
                                 }
+                                .padding()
+                                .frame(width: 300, height: 150)
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                             }
                         }
-                        .padding()
                     }
-                    .onAppear(perform:ensureLoadOnce)
-                    .navigationTitle("Your Goals")
+                    .padding()
                 }
-                Spacer()
-
+                .onAppear(perform:ensureLoadOnce)
+                .navigationTitle("Your Goals")
             }
-
+            Spacer()
+            
+        }
     }
     func ensureLoadOnce(){
             if (!loaded){
@@ -68,6 +73,7 @@ struct GoalsView: View {
     }
     func loadGoals()
     {
+        
             let fm = FileManager.default
 
             guard let BaseDataURL = fm.urls(for: .documentDirectory, //base url for storing data such as reviews or goals
@@ -84,31 +90,28 @@ struct GoalsView: View {
                 // Iterate over each directory
                 for directory in directories {
                     if directory.hasDirectoryPath && directory.lastPathComponent != ".DS_Store" {
-                        var name = directory.lastPathComponent
-
+                        let actname = directory.lastPathComponent
+                        let name = directory.lastPathComponent.lowercased()
                         // Load the image
                         let imageFileURL = directory.appendingPathComponent("\(name).png")
                         let image: Image = fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
 
                         // Load the description
-                        name=name.lowercased()
+                        
                         let descriptionFileURL = directory.appendingPathComponent("\(name)data.json")
                         //print(descriptionFileURL)
-                        var completed = 0.0
-                        var books:[(key:String,value:Bool)] = []
-                        var url=""
+                        var completed:Double = 0
                         if let jsonData = FileManager.default.contents(atPath: descriptionFileURL.path) {
                             let decoder = JSONDecoder()
                             do {
                                 let decoded = try decoder.decode(ItemDescription.self,from:  jsonData)
-                                completed=decoded.completed/decoded.books.count
-                                url=directory
+                                completed=(Double(decoded.completed) ?? 1)/Double(decoded.books.count)
                             }
                             catch{print("\(error)")}
                         }
-
+                        print(String(completed)+"here it be bruh")
                         // Append to items
-                        items.append(GoalItem(name: name, image: image, completed: completed,url:url))
+                        items.append(GoalItem(name: actname, image: image, completed: completed,url:directory))
                     }
                 }
             } catch {
@@ -116,6 +119,7 @@ struct GoalsView: View {
             }
     }
 }
+
 
 #Preview{
     GoalsView()

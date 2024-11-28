@@ -7,7 +7,7 @@ struct DirectoryItem: Identifiable {
     let description: String
     let tags: [String]
 }
-struct ItemDescription: Decodable{
+struct GoalDescription: Decodable{
     var description: String
     var tags:[String]
 }
@@ -77,7 +77,7 @@ struct BookListView: View {
                     return
                 }
         let ReadBooksURL=BaseDataURL.appendingPathComponent("ReadBooks") //base directory for storing reviews
-
+        print(BaseDataURL)
         do {
             // Get the list of directories in the base URL
             let directories = try fm.contentsOfDirectory(at: ReadBooksURL, includingPropertiesForKeys: nil)
@@ -100,7 +100,7 @@ struct BookListView: View {
                     if let jsonData = FileManager.default.contents(atPath: descriptionFileURL.path) {
                         let decoder = JSONDecoder()
                         do {
-                            let decoded = try decoder.decode(ItemDescription.self,from:  jsonData)
+                            let decoded = try decoder.decode(GoalDescription.self,from:  jsonData)
                             description=decoded.description
                             tags=decoded.tags
                         }
