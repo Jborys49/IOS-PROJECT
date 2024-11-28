@@ -15,21 +15,22 @@ struct ItemDescription: Decodable{
 struct BookListView: View {
     @State var items: [DirectoryItem] = []
     var body: some View {
-
         VStack{
             ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 ForEach(items) { item in
-                    Button(action: {
-                        print("Tapped on \(item.name)")
-                    }) {
+                    NavigationLink(destination: ReviewView(
+                                                    image: item.image,
+                                                    description: item.description,
+                                                    tags: item.tags
+                                                )) {
                         HStack {
                             // Image
                             item.image
                                 .resizable()
                                 .frame(width: 50, height: 50)
                                 .clipShape(Circle())
-                           
+
                             // Text information
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(item.name)
@@ -54,24 +55,6 @@ struct BookListView: View {
         }
         Spacer()
         //shuffling beetween views
-        TabView {
-            Tab("Your Books", systemImage: "BookIcon") {
-        //BookView()
-        }
-            Tab("Your Reviews", systemImage: "BookIcon") {
-        BookListView()
-        }
-       
-            Tab("Your Goals", systemImage: "ListIcon") {
-        GoalsView()
-        }
-
-            Tab("Profile", systemImage: "ProfileIcon") {
-        ProfileView()
-        }
-
-        }
-       
     }
     func loadDirectoryItems() {
         let fm = FileManager.default
@@ -81,8 +64,8 @@ struct BookListView: View {
                 {
                     return
                 }
-
         let ReadBooksURL=BaseDataURL.appendingPathComponent("ReadBooks") //base directory for storing reviews
+
         do {
             // Get the list of directories in the base URL
             let directories = try fm.contentsOfDirectory(at: ReadBooksURL, includingPropertiesForKeys: nil)
