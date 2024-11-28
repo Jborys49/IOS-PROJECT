@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct ReviewView: View {
-    let image: Image
-    let description: String
-    let tags: [String]
+    @State var image: Image
+    @State var description: String
+    @State var tags: [String]
 
     var body: some View {
         ScrollView {
@@ -21,10 +21,12 @@ struct ReviewView: View {
                     Text("Description")
                         .font(.headline)
                         .padding(.bottom, 4)
-
-                    Text(description)
-                        .font(.body)
-                        .multilineTextAlignment(.leading)
+                    HStack{
+                        Text(description)
+                            .font(.body)
+                            .multilineTextAlignment(.leading)
+                        Spacer()
+                    }
                 }
                 .padding(.horizontal)
 

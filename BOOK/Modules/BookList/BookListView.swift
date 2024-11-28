@@ -14,47 +14,59 @@ struct ItemDescription: Decodable{
 
 struct BookListView: View {
     @State var items: [DirectoryItem] = []
+    @State private var loaded = false
     var body: some View {
+        NavigationView{
         VStack{
             ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach(items) { item in
-                    NavigationLink(destination: ReviewView(
-                                                    image: item.image,
-                                                    description: item.description,
-                                                    tags: item.tags
-                                                )) {
-                        HStack {
-                            // Image
-                            item.image
-                                .resizable()
-                                .frame(width: 50, height: 50)
-                                .clipShape(Circle())
-
-                            // Text information
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.name)
-                                    .font(.headline)
-                                Text(item.description)
-                                    .font(.subheadline)
-                                    .lineLimit(2) // Limit to 2 lines
-                                    .foregroundColor(.gray)
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(items) { item in
+                        NavigationLink(destination: ReviewView(
+                            image: item.image,
+                            description: item.description,
+                            tags: item.tags
+)) {
+                            HStack {
+                                // Image
+                                item.image
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                                
+                                // Text information
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.name)
+                                        .font(.headline)
+                                    
+                                    Text(item.description)
+                                        .font(.subheadline)
+                                        .lineLimit(2) // Limit to 2 lines
+                                        .foregroundColor(.gray)
+                                }
+                                Spacer()
                             }
+                            .padding()
+                            .frame(width: 300, height: 80)
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                         }
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                     }
                 }
+                .padding()
             }
-            .padding()
-        }
-        .onAppear(perform: loadDirectoryItems)
-        .navigationTitle("Dynamic List")
+            .onAppear(perform:ensureLoadOnce)
+            .navigationTitle("Saved Reviews")
         }
         Spacer()
-        //shuffling beetween views
+    
+    }
+    }
+    func ensureLoadOnce(){
+        if (!loaded){
+            loadDirectoryItems()
+            loaded=true
+        }
     }
     func loadDirectoryItems() {
         let fm = FileManager.default

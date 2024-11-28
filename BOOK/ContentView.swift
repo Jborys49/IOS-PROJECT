@@ -6,18 +6,18 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-                    Tab("Your Books", systemImage: "BookIcon") {
+                    Tab("Your Books", systemImage: "book") {
                 //BookView()
                 }
-                    Tab("Your Reviews", systemImage: "BookIcon") {
+                    Tab("Your Reviews", systemImage: "bookmark") {
                 BookListView()
                 }
 
-                    Tab("Your Goals", systemImage: "ListIcon") {
+                    Tab("Your Goals", systemImage: "checkmark.square") {
                 GoalsView()
                 }
 
-                    Tab("Profile", systemImage: "ProfileIcon") {
+                    Tab("Profile", systemImage: "person.circle") {
                 ProfileView()
                 }
     }
