@@ -46,9 +46,6 @@ struct IndGoalView: View {
             Spacer()
 
             // Completion Summary
-            Text("Books Completed: \(completed)/\(books.count)")
-                .font(.subheadline)
-                .padding()
         }
         .onAppear(perform: loadData) // Load data when the view appears
         .onDisappear(perform: saveData) // Save data when the view is exited
@@ -71,8 +68,7 @@ struct IndGoalView: View {
             do {
                 // Decode the JSON
                 let decoded = try decoder.decode(ItemDescription.self, from: jsonData)
-                completed = decoded.completed
-
+                print("before")
                 // Map JSON books to `Book` objects
                 books = decoded.books.map { Book(title: $0.name, isCompleted: $0.status) }
             } catch {
@@ -83,7 +79,7 @@ struct IndGoalView: View {
 
     // Save updated data back to JSON
     func saveData() {
-        let fm = FileManager.default
+        //let fm = FileManager.default
         let name = directoryURL.lastPathComponent
         let descriptionFileURL = directoryURL.appendingPathComponent("\(name.lowercased())data.json")
 

@@ -168,7 +168,7 @@ struct BookListView: View {
             return
         }
         let ReadBooksURL = BaseDataURL.appendingPathComponent("ReadBooks")
-        //print(ReadBooksURL)
+        print(ReadBooksURL)
         let directoryToDelete = ReadBooksURL.appendingPathComponent(item.name)
 
         do {
