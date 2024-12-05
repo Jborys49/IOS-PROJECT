@@ -7,174 +7,117 @@ struct DirectoryItem: Identifiable {
     let description: String
     let tags: [String]
 }
-
-struct ItemDescription: Decodable {
+struct GoalDescription: Decodable{
     var description: String
-    var tags: [String]
+    var tags:[String]
 }
 
 struct BookListView: View {
     @State var items: [DirectoryItem] = []
     @State private var loaded = false
-    @State private var showAlert = false
-    @State private var itemToDelete: DirectoryItem? = nil
-
     var body: some View {
-        NavigationView {
-            VStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        ForEach(items) { item in
+        NavigationView{
+        VStack{
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(items) { item in
+                        NavigationLink(destination: ReviewView(
+                            image: item.image,
+                            description: item.description,
+                            tags: item.tags
+)) {
                             HStack {
-                                NavigationLink(destination: ReviewView(
-                                    image: item.image,
-                                    description: item.description,
-                                    tags: item.tags
-                                )) {
-                                    HStack {
-                                        // Image
-                                        item.image
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .clipShape(Circle())
-
-                                        // Text information
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(item.name)
-                                                .font(.headline)
-
-                                            Text(item.description)
-                                                .font(.subheadline)
-                                                .lineLimit(2)
-                                                .foregroundColor(.gray)
-                                        }
-                                        Spacer()
-                                    }
-                                    .padding()
-                                    .frame(width: 240, height: 80)
-                                    .background(Color.white)
-                                    .cornerRadius(10)
-                                    .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                                // Image
+                                item.image
+                                    .resizable()
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                                
+                                // Text information
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.name)
+                                        .font(.headline)
+                                    
+                                    Text(item.description)
+                                        .font(.subheadline)
+                                        .lineLimit(2) // Limit to 2 lines
+                                        .foregroundColor(.gray)
                                 }
                                 Spacer()
-
-                                // Delete Button
-                                Button(action: {
-                                    itemToDelete = item
-                                    showAlert = true
-                                }) {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.red)
-                                        .padding()
-                                }
                             }
+                            .padding()
+                            .frame(width: 300, height: 80)
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                         }
                     }
-                    .padding()
                 }
-                .onAppear(perform: ensureLoadOnce)
-                .alert(isPresented: $showAlert) {
-                    Alert(
-                        title: Text("Are you sure?"),
-                        message: Text("This action will delete the selected item."),
-                        primaryButton: .destructive(Text("Delete")) {
-                            if let item = itemToDelete {
-                                deleteItem(item: item)
-                            }
-                        },
-                        secondaryButton: .cancel()
-                    )
-                }
-                .navigationTitle("Saved Reviews")
+                .padding()
             }
-            Spacer()
-             VStack { //navigation link to review creator
-                                Spacer()
-                                HStack {
-                                    Spacer()
-                                    NavigationLink(destination: AddReview()) {
-                                        Image(systemName: "plus")
-                                            .font(.system(size: 24))
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .background(Color.green)
-                                            .clipShape(Circle())
-                                            .shadow(radius: 5)
-                                    }
-                                    .padding()
-                                }
-                            }
+            .onAppear(perform:ensureLoadOnce)
+            .navigationTitle("Saved Reviews")
         }
+        Spacer()
+    
     }
-
-    func ensureLoadOnce() {
-        if !loaded {
+    }
+    func ensureLoadOnce(){
+        if (!loaded){
             loadDirectoryItems()
-            loaded = true
+            loaded=true
         }
     }
-
     func loadDirectoryItems() {
         let fm = FileManager.default
 
-        guard let BaseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return
-        }
-        let ReadBooksURL = BaseDataURL.appendingPathComponent("ReadBooks")
-
+        guard let BaseDataURL = fm.urls(for: .documentDirectory, //base url for storing data such as reviews or goals
+                                             in:.userDomainMask).first else
+                {
+                    return
+                }
+        let ReadBooksURL=BaseDataURL.appendingPathComponent("ReadBooks") //base directory for storing reviews
+        print(BaseDataURL)
         do {
+            // Get the list of directories in the base URL
             let directories = try fm.contentsOfDirectory(at: ReadBooksURL, includingPropertiesForKeys: nil)
+           
+            // Iterate over each directory
             for directory in directories {
                 if directory.hasDirectoryPath && directory.lastPathComponent != ".DS_Store" {
                     var name = directory.lastPathComponent
-
+                   
                     // Load the image
                     let imageFileURL = directory.appendingPathComponent("\(name).png")
                     let image: Image = fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
-
+                   
                     // Load the description
-                    name = name.lowercased()
+                    name=name.lowercased()
                     let descriptionFileURL = directory.appendingPathComponent("\(name)_data.json")
+                    //print(descriptionFileURL)
                     var description = "No description available"
-                    var tags: [String] = []
+                    var tags:[String] = []
                     if let jsonData = FileManager.default.contents(atPath: descriptionFileURL.path) {
                         let decoder = JSONDecoder()
                         do {
-                            let decoded = try decoder.decode(ItemDescription.self, from: jsonData)
-                            description = decoded.description
-                            tags = decoded.tags
-                        } catch {
-                            print("\(error)")
+                            let decoded = try decoder.decode(GoalDescription.self,from:  jsonData)
+                            description=decoded.description
+                            tags=decoded.tags
                         }
+                        catch{print("\(error)")}
                     }
-
+                   
                     // Append to items
-                    items.append(DirectoryItem(name: name, image: image, description: description, tags: tags))
+                    items.append(DirectoryItem(name: name, image: image, description: description,tags:tags))
                 }
             }
         } catch {
             print("Error reading directory: \(error.localizedDescription)")
         }
     }
-
-    func deleteItem(item: DirectoryItem) {
-        let fm = FileManager.default
-
-        guard let BaseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return
-        }
-        let ReadBooksURL = BaseDataURL.appendingPathComponent("ReadBooks")
-        let directoryToDelete = ReadBooksURL.appendingPathComponent(item.name)
-
-        do {
-            try fm.removeItem(at: directoryToDelete)
-            items.removeAll { $0.id == item.id }
-        } catch {
-            print("Error deleting item: \(error.localizedDescription)")
-        }
-    }
 }
 
-#Preview {
+
+#Preview{
     BookListView()
 }
