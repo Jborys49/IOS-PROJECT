@@ -51,24 +51,23 @@ struct BookListView: View {
                                                     .foregroundColor(.gray)
                                             }
                                             Spacer()
+                                            // Delete Button
+                                            Button(action: {
+                                                itemToDelete = item
+                                                showAlert = true
+                                            }) {
+                                                Image(systemName: "trash")
+                                                    .foregroundColor(.red)
+                                                    .padding()
+                                            }
                                         }
                                         .padding()
-                                        .frame(width: 240, height: 80)
+                                        .frame(width: 400,height: 80)
                                         .background(Color.white)
                                         .cornerRadius(10)
                                         .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                                     }
                                     Spacer()
-
-                                    // Delete Button
-                                    Button(action: {
-                                        itemToDelete = item
-                                        showAlert = true
-                                    }) {
-                                        Image(systemName: "trash")
-                                            .foregroundColor(.red)
-                                            .padding()
-                                    }
                                 }
                             }
                         }
@@ -95,7 +94,7 @@ struct BookListView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        NavigationLink(destination: CreationView()) {
+                        NavigationLink(destination: AddReview()) {
                             Image(systemName: "plus")
                                 .font(.system(size: 24))
                                 .foregroundColor(.white)
@@ -137,8 +136,8 @@ struct BookListView: View {
                     let image: Image = fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
 
                     // Load the description
-                    name = name.lowercased()
-                    let descriptionFileURL = directory.appendingPathComponent("\(name)_data.json")
+                    var nameL = name.lowercased()
+                    let descriptionFileURL = directory.appendingPathComponent("\(nameL)_data.json")
                     var description = "No description available"
                     var tags: [String] = []
                     if let jsonData = FileManager.default.contents(atPath: descriptionFileURL.path) {
@@ -168,48 +167,20 @@ struct BookListView: View {
             return
         }
         let ReadBooksURL = BaseDataURL.appendingPathComponent("ReadBooks")
+        //print(ReadBooksURL)
         let directoryToDelete = ReadBooksURL.appendingPathComponent(item.name)
 
         do {
+            print(directoryToDelete)
             try fm.removeItem(at: directoryToDelete)
             items.removeAll { $0.id == item.id } // Remove item from state
         } catch {
-            print("Error deleting item: \(error.localizedDescription)")
+            print("Error deleting item: \(error)")
         }
     }
 }
 
-struct CreationView: View {
-    var body: some View {
-        Text("Creation View")
-            .font(.largeTitle)
-            .padding()
-    }
-}
 
-struct ReviewView: View {
-    let image: Image
-    let description: String
-    let tags: [String]
-
-    var body: some View {
-        VStack {
-            image
-                .resizable()
-                .frame(width: 200, height: 200)
-                .clipShape(Circle())
-                .padding()
-
-            Text(description)
-                .font(.title)
-                .padding()
-
-            Text("Tags: \(tags.joined(separator: ", "))")
-                .foregroundColor(.gray)
-                .padding()
-        }
-    }
-}
 
 #Preview {
     BookListView()
