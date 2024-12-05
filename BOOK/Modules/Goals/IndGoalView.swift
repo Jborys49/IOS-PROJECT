@@ -1,22 +1,18 @@
 import SwiftUI
 
-// Define the data model for the books inside the JSON
 struct Book: Identifiable {
     let id = UUID() // To make it Identifiable for use in ForEach
-    let title: String
-    let isCompleted: Bool
+    var title: String
+    var isCompleted: Bool
 }
-struct JSONobject:Decodable{
-    let completed:Int
-    let books:[String]
-    let status:[Bool]
-}
+
 struct IndGoalView: View {
     let directoryURL: URL
 
     @State private var books: [Book] = []
     @State private var image: Image? = nil
-    @State private var completed: Int? = 0
+    @Environment(\.presentationMode) var presentationMode // To detect when the view is exited
+
     var body: some View {
         VStack {
             // Display image if available
@@ -29,57 +25,83 @@ struct IndGoalView: View {
                     .padding()
             }
 
-            // Title for notifications
-            Text("Notifications")
+            // Title for books
+            Text("Books")
                 .font(.headline)
                 .padding(.top)
 
-            // List of books with checkboxes
-            List(books) { book in
-                HStack {
-                    Text(book.title)
-                    Spacer()
-                    // Checkbox (Toggle) displaying completion status
-                    Toggle("", isOn: .constant(book.isCompleted))
-                        .labelsHidden()
-                        //.toggleStyle(CheckboxToggleStyle())
+            // List of books with toggles
+            List {
+                ForEach($books) { $book in
+                    HStack {
+                        Text(book.title)
+                        Spacer()
+                        // Toggle to mark as completed or not
+                        Toggle("", isOn: $book.isCompleted)
+                            .labelsHidden()
+                    }
                 }
             }
 
             Spacer()
+
+            // Completion Summary
+            Text("Books Completed: \(completed)/\(books.count)")
+                .font(.subheadline)
+                .padding()
         }
         .onAppear(perform: loadData) // Load data when the view appears
+        .onDisappear(perform: saveData) // Save data when the view is exited
         .padding()
     }
 
+    // Load data from JSON and image
     func loadData() {
-            let fm = FileManager.default
-            let name = directoryURL.lastPathComponent
-            // Load the image
-        let imageFileURL = directoryURL.appendingPathComponent("\(name.lowercased()).png")
-            image = fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
+        let fm = FileManager.default
+        let name = directoryURL.lastPathComponent
 
-            // Load the description
-            
+        // Load the image
+        let imageFileURL = directoryURL.appendingPathComponent("\(name.lowercased()).png")
+        image = fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
+
+        // Load the JSON
         let descriptionFileURL = directoryURL.appendingPathComponent("\(name.lowercased())data.json")
-            //print(descriptionFileURL)
-        var booksRead:[String] = []
-        var completion:[Bool] = []
         if let jsonData = fm.contents(atPath: descriptionFileURL.path) {
-                let decoder = JSONDecoder()
-                do {
-                    let decoded = try decoder.decode(JSONobject.self,from:  jsonData)
-                    booksRead=decoded.books
-                    completion=decoded.status
-                    completed=decoded.completed
-                }
-                catch{print("\(error)")}
+            let decoder = JSONDecoder()
+            do {
+                // Decode the JSON
+                let decoded = try decoder.decode(ItemDescription.self, from: jsonData)
+                completed = decoded.completed
+
+                // Map JSON books to `Book` objects
+                books = decoded.books.map { Book(title: $0.name, isCompleted: $0.status) }
+            } catch {
+                print("Error decoding JSON: \(error)")
             }
-            // Append to items
-        for (bok,state) in zip(booksRead,completion) {
-            books.append(Book(title: bok, isCompleted: state))
         }
-        
-        
     }
+
+    // Save updated data back to JSON
+    func saveData() {
+        let fm = FileManager.default
+        let name = directoryURL.lastPathComponent
+        let descriptionFileURL = directoryURL.appendingPathComponent("\(name.lowercased())data.json")
+
+        // Update the JSON model with new data
+        let updatedBooks = books.map { BookEntry(name: $0.title, status: $0.isCompleted) }
+        let newDescription = ItemDescription( books: updatedBooks, startDate: Date(), endDate: Date()) // Update dates if necessary
+
+        // Encode the updated JSON
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        encoder.dateEncodingStrategy = .iso8601
+        do {
+            let jsonData = try encoder.encode(newDescription)
+            try jsonData.write(to: descriptionFileURL)
+        } catch {
+            print("Error saving JSON: \(error)")
+        }
+    }
+
+    // Recalculate the completion count dynamically
 }
