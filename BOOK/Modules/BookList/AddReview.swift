@@ -8,7 +8,7 @@ struct AddReview: View {
     @State private var selectedImage: UIImage? = nil
     @State private var showImagePicker = false
     @Environment(\.presentationMode) var presentationMode // To dismiss view
-    
+    @Binding var items:[DirectoryItem]//refreshing the thingimajig when creation is over
     var body: some View {
         VStack(spacing: 20) {
             // Image Upload Section
@@ -171,7 +171,13 @@ struct AddReview: View {
             let encoder = JSONEncoder()
             let jsonData = try encoder.encode(descriptionData)
             try jsonData.write(to: jsonURL)
-            
+            let newItem = DirectoryItem(
+                            name: bookName,
+                            image: Image(uiImage: selectedImage ?? UIImage()),
+                            description: description,
+                            tags: tags
+                        )
+            items.append(newItem)
             // Dismiss the view
             presentationMode.wrappedValue.dismiss()
         } catch {

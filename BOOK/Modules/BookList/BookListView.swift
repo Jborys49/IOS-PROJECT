@@ -8,7 +8,7 @@ struct DirectoryItem: Identifiable {
     let tags: [String]
 }
 
-struct GoalDescription: Decodable {
+struct GoalDescription: Decodable,Encodable {
     var description: String
     var tags: [String]
 }
@@ -94,9 +94,9 @@ struct BookListView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        NavigationLink(destination: AddReview()) {
+                        NavigationLink(destination: AddReview(items:$items)) {
                             Image(systemName: "plus")
-                                .font(.system(size: 24))
+                                .font(.system(size: 30))
                                 .foregroundColor(.white)
                                 .padding()
                                 .background(Color.green)
@@ -104,6 +104,7 @@ struct BookListView: View {
                                 .shadow(radius: 5)
                         }
                         .padding()
+                        Spacer()
                     }
                 }
             }

@@ -109,7 +109,7 @@ struct GoalsView: View {
                             }
                             catch{print("\(error)")}
                         }
-                        print(String(completed)+"here it be bruh")
+                        //print(String(completed)+"here it be bruh")
                         // Append to items
                         items.append(GoalItem(name: actname, image: image, completed: completed,url:directory))
                     }
