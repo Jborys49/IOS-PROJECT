@@ -65,6 +65,7 @@ struct IndGoalView: View {
         let descriptionFileURL = directoryURL.appendingPathComponent("\(name.lowercased())data.json")
         if let jsonData = fm.contents(atPath: descriptionFileURL.path) {
             let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
             do {
                 // Decode the JSON
                 let decoded = try decoder.decode(ItemDescription.self, from: jsonData)
