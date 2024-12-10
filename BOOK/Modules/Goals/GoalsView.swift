@@ -90,15 +90,15 @@ struct GoalsView: View {
     func loadGoals() {
         let fm = FileManager.default
 
-                guard let baseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                /*guard let baseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
                     return
-                }
-
-                let goalsURL = baseDataURL.appendingPathComponent("Goals") // Base directory for goals
+                }*/
+                let goalsPath = Bundle.main.resourcePath! + "/Goals" //perhaps works and i dont have to use the damn documents directory
+                //let goalsURL = baseDataURL.appendingPathComponent("Goals") // Base directory for goals
 
                 do {
                     // Get the list of directories in the base URL
-                    let directories = try fm.contentsOfDirectory(at: goalsURL, includingPropertiesForKeys: nil)
+                    let directories = try fm.contentsOfDirectory(atPath:goalsPath)
 
                     // Iterate over each directory
                     for directory in directories {
