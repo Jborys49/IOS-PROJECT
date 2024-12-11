@@ -130,7 +130,7 @@ struct BookListView: View {
             let directories = try fm.contentsOfDirectory(at: ReadBooksURL, includingPropertiesForKeys: nil)
             for directory in directories {
                 if directory.hasDirectoryPath && directory.lastPathComponent != ".DS_Store" {
-                    var name = directory.lastPathComponent
+                    let name = directory.lastPathComponent
 
                     // Load the image
                     let imageFileURL = directory.appendingPathComponent("\(name).png")

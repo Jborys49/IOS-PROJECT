@@ -1,4 +1,29 @@
 import SwiftUI
+struct GoalItem: Identifiable {
+    let id = UUID()
+    let name: String
+    let image: Image
+    var completed: Double
+    let startDate: Date
+    let endDate: Date
+    let url: URL
+
+}
+
+
+
+struct ItemDescription: Decodable, Encodable {
+    var books: [BookEntry]
+    var startDate: Date
+    var endDate: Date
+}
+
+
+
+struct BookEntry: Decodable, Encodable {
+    var name: String
+    var status: Bool
+}
 
 struct GoalsView: View {
     @State var items: [GoalItem] = []
@@ -16,10 +41,21 @@ struct GoalsView: View {
                                 NavigationLink(destination: IndGoalView(directoryURL: item.url, updateProgress: updateProgress)) {
                                     VStack(alignment: .leading) {
                                         // Image
-                                        item.image
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 100, maxHeight: 100)
+                                        HStack{
+                                            item.image
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 100, maxHeight: 100)
+                                            
+                                            Button(action: {
+                                                goalToDelete = item
+                                                showAlert = true
+                                            }) {
+                                                Image(systemName: "trash")
+                                                    .foregroundColor(.red)
+                                                    .padding()
+                                            }
+                                        }
 
                                         // Goal Name
                                         Text(item.name)
@@ -49,16 +85,6 @@ struct GoalsView: View {
                                     .background(item.completed == 1.0 ? Color.green.opacity(0.2) : Color.white)
                                     .cornerRadius(10)
                                     .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
-                                }
-
-                                // Delete Button
-                                Button(action: {
-                                    goalToDelete = item
-                                    showAlert = true
-                                }) {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.red)
-                                        .padding()
                                 }
                             }
                         }
@@ -90,15 +116,16 @@ struct GoalsView: View {
     func loadGoals() {
         let fm = FileManager.default
 
-                /*guard let baseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                guard let baseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
                     return
-                }*/
-                let goalsPath = Bundle.main.resourcePath! + "/Goals" //perhaps works and i dont have to use the damn documents directory
-                //let goalsURL = baseDataURL.appendingPathComponent("Goals") // Base directory for goals
+                }
+        //let goalsURL = Bundle.main.resourceURL!.appendingPathComponent("Goals")
+        //perhaps works and i dont have to use the damn documents directory
+                let goalsURL = baseDataURL.appendingPathComponent("Goals") // Base directory for goals
 
                 do {
                     // Get the list of directories in the base URL
-                    let directories = try fm.contentsOfDirectory(atPath:goalsPath)
+                    let directories = try fm.contentsOfDirectory(at:goalsURL,includingPropertiesForKeys: nil)
 
                     // Iterate over each directory
                     for directory in directories {
@@ -171,4 +198,7 @@ struct GoalsView: View {
             return .gray
         }
     }
+}
+#Preview{
+    GoalsView()
 }
