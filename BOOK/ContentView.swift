@@ -10,7 +10,7 @@ struct ContentView: View {
                 //BookView()
                 }
                     Tab("Your Reviews", systemImage: "bookmark") {
-                BookListView()
+                ReviewView()
                 }
 
                     Tab("Your Goals", systemImage: "checkmark.square") {

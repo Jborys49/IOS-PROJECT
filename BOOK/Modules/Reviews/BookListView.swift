@@ -13,7 +13,7 @@ struct GoalDescription: Decodable,Encodable {
     var tags: [String]
 }
 
-struct BookListView: View {
+struct ReviewView: View {
     @State var items: [DirectoryItem] = []
     @State private var loaded = false
     @State private var showAlert = false
@@ -184,5 +184,5 @@ struct BookListView: View {
 
 
 #Preview {
-    BookListView()
+    ReviewView()
 }
