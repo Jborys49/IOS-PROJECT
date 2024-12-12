@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct AddGoalView: View {
-    @Environment(\.presentationMode) var presentationMode // To dismiss the view
-
     @State private var goalName: String = ""
     @State private var goalEndDate: Date = Date()
     @State private var books: [String] = [] // List of books
@@ -10,6 +8,8 @@ struct AddGoalView: View {
     @State private var goalImage: UIImage? = nil // Goal image
     @State private var showImagePicker = false // To show the image picker
 
+    @Environment(\.presentationMode) var presentationMode // To dismiss the view
+    @Binding var items: [GoalItem]
     var body: some View {
         VStack(spacing: 16)
         {
@@ -74,8 +74,8 @@ struct AddGoalView: View {
             }
 
             // Display list of books
-            List {
-                ForEach(books, id: \"\".self) { book in
+            ScrollView {
+                ForEach(books, id: \.self) { book in
                     HStack {
                         Text(book)
                         Spacer()
@@ -146,12 +146,18 @@ struct AddGoalView: View {
         } catch {
             print("Error saving goal data: \(error)")
         }
-
+        let newitem = GoalItem(name: goalName,
+                               image: Image(uiImage: goalImage ?? UIImage()),
+                               completed: 0,
+                               startDate: startDate,
+                               endDate: goalEndDate,
+                               url: goalDirectory)
         // Dismiss the view
+        items.append(newitem)
         presentationMode.wrappedValue.dismiss()
     }
 }
-
+/*
 // Image Picker for selecting an image
 struct ImagePicker: UIViewControllerRepresentable {
     class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
@@ -184,8 +190,8 @@ struct ImagePicker: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 }
-
+*/
 // Preview
-#Preview {
+/*#Preview {
        AddGoalView()
-}
+}*/

@@ -52,24 +52,24 @@ struct GoalsView: View {
                                                     .padding()
                                             }
                                         }
-
+                                        
                                         // Goal Name
                                         Text(item.name)
                                             .font(.headline)
-
+                                        
                                         // Progress View
                                         ProgressView(value: item.completed)
                                             .accentColor(item.completed == 1.0 ? .green : .blue)
-
+                                        
                                         // Dates
                                         HStack {
                                             Text("End: \(formattedDate(item.endDate))")
                                                 .foregroundColor(endDateColor(item.endDate))
                                                 .font(.caption)
                                                 .padding(.leading, 5)
-
+                                            
                                             Spacer()
-
+                                            
                                             Text("Start: \(formattedDate(item.startDate))")
                                                 .foregroundColor(.gray)
                                                 .font(.caption)
@@ -89,8 +89,23 @@ struct GoalsView: View {
                 }
                 .onAppear(perform: ensureLoadOnce)
                 .navigationTitle("Your Goals")
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        NavigationLink(destination: AddGoalView(items:$items)) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 30))
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(Color.green)
+                                .clipShape(Circle())
+                                .shadow(radius: 5)
+                        }
+                        .padding()
+                        Spacer()
+                    }
+                
             }
-            Spacer()
         }
         .alert("Are you sure?", isPresented: $showAlert) {
             Button("Delete", role: .destructive) {

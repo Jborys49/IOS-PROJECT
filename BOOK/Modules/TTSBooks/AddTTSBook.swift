@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct Book: Identifiable {
+struct BookTTS: Identifiable {
     let id = UUID()
     let title: String
     let author: String
@@ -9,7 +9,7 @@ struct Book: Identifiable {
 
 struct APITESTView: View {
     @State private var searchQuery: String = ""
-    @State private var books: [Book] = []
+    @State private var books: [BookTTS] = []
     @State private var isLoading: Bool = false
 
     var body: some View {
@@ -74,7 +74,7 @@ struct APITESTView: View {
                 let result = try JSONDecoder().decode(OpenLibraryResponse.self, from: data)
                 DispatchQueue.main.async {
                     books = result.docs.map {
-                        Book(
+                        BookTTS(
                             title: $0.title,
                             author: $0.author_name?.first ?? "Unknown Author",
                             coverURL: $0.cover_i != nil ? URL(string: "https://covers.openlibrary.org/b/id/\($0.cover_i!)-M.jpg") : nil
@@ -89,7 +89,7 @@ struct APITESTView: View {
 }
 
 struct BookRow: View {
-    let book: Book
+    let book: BookTTS
 
     var body: some View {
         HStack {

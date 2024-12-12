@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ReviewView: View {
+struct IndReviewView: View {
     @State var image: Image
     @State var description: String
     @State var tags: [String]

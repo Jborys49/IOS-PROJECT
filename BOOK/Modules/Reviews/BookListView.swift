@@ -28,7 +28,7 @@ struct ReviewView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             ForEach(items) { item in
                                 HStack {
-                                    NavigationLink(destination: ReviewView(
+                                    NavigationLink(destination: IndReviewView(
                                         image: item.image,
                                         description: item.description,
                                         tags: item.tags

@@ -24,7 +24,7 @@ struct ProfileView: View {
                     }
                     .padding()*/
                     
-                    NavigationLink(destination: BookListView()) {
+                    NavigationLink(destination: ReviewView()) {
                         Image("BookIcon")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
