@@ -1,132 +1,118 @@
-//
-//  BookView.swift
-//  BOOK
-//
-//  Created by IOSLAB on 14/11/2024.
-//
-/*
 import SwiftUI
-import AVFoundation
-import AVKit
 
-struct BookView: View {
-    
-    @State private var folderNames: [String] = []
+struct BookItem: Identifiable {
+    let id = UUID()
+    let name: String
+    let image: Image
+    let description: String
+    let url: URL
+}
+
+struct BooksView: View {
+    @State var items: [BookItem] = []
+    @State private var loaded = false
+
     var body: some View {
         NavigationView {
             VStack {
-                // List to display folder names
-                List(folderNames, id: \.self) { folder in
-                    Button(action: {
-                        TTSRead(folderName: folder)
-                    }) {
-                        Text(folder)
-                    }
-                }
-                .onAppear(perform: fetchFolderNames)
-                Spacer() // Pushes buttons to the bottom
-                
-                HStack {
-                    NavigationLink(destination: BookView()) {
-                        Image("BookIcon")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
-                    }
-                    .padding()
-                    
-                    NavigationLink(destination: BookListView()) {
-                        Image("BookIcon")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
-                    }
-                    .padding()
-                    
-                    NavigationLink(destination: GoalsView()) {
-                        Image("ListIcon")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
-                    }
-                    .padding()
-                    
-                    NavigationLink(destination: ProfileView()) {
-                        Image("ProfileIcon")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(items) { item in
+                            HStack {
+                                NavigationLink(destination: BookDetailView(directoryURL: item.url)) {
+                                    VStack(alignment: .leading) {
+                                        // Image
+                                        HStack {
+                                            item.image
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 100, maxHeight: 100)
+
+                                            Spacer()
+                                        }
+
+                                        // Book Name
+                                        Text(item.name)
+                                            .font(.headline)
+
+                                        // Description
+                                        Text(item.description)
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding()
+                                    .frame(width: 260, height: 170)
+                                    .background(Color.white)
+                                    .cornerRadius(10)
+                                    .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                                }
+                            }
+                        }
                     }
                     .padding()
                 }
-                .padding(.bottom, 20)
+                .onAppear(perform: ensureLoadOnce)
+                .navigationTitle("Your Books")
             }
-            .navigationTitle("BookReader")
+            Spacer()
         }
     }
-    // Function to fetch folder names
-    private func fetchFolderNames() {
-        let fileManager = FileManager.default
-            // Path to the "ttsbooks" folder inside the main bundle
-            guard let ttsbooksPath = Bundle.main.resourcePath?.appending("/ttsbooks")
 
-        else {
-                print("Unable to locate ttsbooks directory.")
-                return
-            }
-            do {
-                let items = try fileManager.contentsOfDirectory(atPath: ttsbooksPath)
-                // Filter to include only folders
-                folderNames = items.filter { item in
-                    var isDirectory: ObjCBool = false
-                    let fullPath = ttsbooksPath + "/\(item)"
-                    fileManager.fileExists(atPath: fullPath, isDirectory: &isDirectory)
-                    return isDirectory.boolValue
-                }
-            } catch {
-                print("Error fetching folder names: \(error.localizedDescription)")
-            }
+    func ensureLoadOnce() {
+        if !loaded {
+            loadBooks()
+            loaded = true
+        }
     }
-    
-    // Function to fetch and parse JSON from folder
-    private func TTSRead(folderName: String) {
-        let basePath = Bundle.main.resourcePath! + "/ttsbooks"
-        let folderPath = basePath + "/\(folderName)"
-        let jsonFilePath = folderPath + "/data_\(folderName.lowercased()).json" // Example naming
-        // Assuming JSON file is named `data.json`
-        
-        let fileManager = FileManager.default
-        
-        // Check if the file exists
-        guard fileManager.fileExists(atPath: jsonFilePath) else {
-            print("JSON file not found in folder: \(folderName)")
+
+    func loadBooks() {
+        let fm = FileManager.default
+
+        guard let baseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return
         }
-        
+
+        let booksURL = baseDataURL.appendingPathComponent("TTSBooks") // Base directory for books
+
         do {
-            // Read the JSON file contents
-            let jsonData = try Data(contentsOf: URL(fileURLWithPath: jsonFilePath))
-            
-            // Decode JSON into a Swift model
-            let decodedData = try JSONDecoder().decode(Book.self, from: jsonData)
-            let utterance = AVSpeechUtterance(string:decodedData.text)
-            utterance.voice = AVSpeechSynthesisVoice(language:decodedData.language)
-            
-            let TTS = AVSpeechSynthesizer()
-            TTS.speak(utterance)
-            //print("JSON Decoded Successfully: \(decodedData)")
+            // Get the list of directories in the base URL
+            let directories = try fm.contentsOfDirectory(at: booksURL, includingPropertiesForKeys: nil)
+
+            // Iterate over each directory
+            for directory in directories {
+                if directory.hasDirectoryPath && directory.lastPathComponent != ".DS_Store" {
+                    let bookName = directory.lastPathComponent
+
+                    // Load the image
+                    let imageFileURL = directory.appendingPathComponent("cover.png")
+                    let image: Image = fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
+
+                    // Load the description
+                    let descriptionFileURL = directory.appendingPathComponent("description.txt")
+                    let description = (try? String(contentsOf: descriptionFileURL)) ?? "No description available"
+
+                    // Append to items
+                    items.append(BookItem(name: bookName, image: image, description: description, url: directory))
+                }
+            }
         } catch {
-            print("Error reading or decoding JSON: \(error.localizedDescription)")
+            print("Error reading directory: \(error.localizedDescription)")
         }
     }
 }
-// Example Swift model to decode JSON into
-struct Book: Codable {
-    let language: String
-    let text: String
+
+struct BookDetailView: View {
+    let directoryURL: URL
+
+    var body: some View {
+        VStack {
+            Text("Book Directory: \(directoryURL.path)")
+                .padding()
+                .navigationTitle("Book Details")
+        }
+    }
 }
 
-#Preview{
-    BookView()
+#Preview {
+    BooksView()
 }
-*/

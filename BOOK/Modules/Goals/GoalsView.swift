@@ -10,15 +10,11 @@ struct GoalItem: Identifiable {
 
 }
 
-
-
 struct ItemDescription: Decodable, Encodable {
     var books: [BookEntry]
     var startDate: Date
     var endDate: Date
 }
-
-
 
 struct BookEntry: Decodable, Encodable {
     var name: String
