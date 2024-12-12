@@ -1,4 +1,4 @@
-import SwiftUI
+/*import SwiftUI
 
 struct BookItem: Identifiable {
     let id = UUID()
@@ -116,3 +116,4 @@ struct BookDetailView: View {
 #Preview {
     BooksView()
 }
+*/
