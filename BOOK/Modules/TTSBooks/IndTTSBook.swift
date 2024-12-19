@@ -49,14 +49,19 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     func startTTS() {
         guard !isPlayingTTS, let pdfDocument = pdfDocument else { return }
-        guard let page = pdfDocument.page(at: currentPageIndex),
-              let pageContent = page.string else { return }
+            guard let page = pdfDocument.page(at: currentPageIndex),
+                  let pageContent = page.string, !pageContent.isEmpty else {
+                print("No content found on the current page.")
+                return
+            }
 
-        isPlayingTTS = true
-        let utterance = AVSpeechUtterance(string: pageContent)
-        utterance.rate = 0.5
-        currentUtterance = utterance
-        synthesizer.speak(utterance)
+            // Stop any existing TTS before starting
+            stopTTS()
+
+            isPlayingTTS = true
+            let utterance = AVSpeechUtterance(string: pageContent)
+            utterance.rate = 0.8 // Adjust the speed as needed
+            synthesizer.speak(utterance)
     }
 
     func stopTTS() {

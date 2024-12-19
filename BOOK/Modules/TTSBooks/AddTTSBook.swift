@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct BookTTS: Identifiable {
     let id = UUID()
@@ -97,57 +98,61 @@ struct APITESTView: View {
     }
 
     func handleBookSelection(book: BookTTS) {
-        // Construct the Open Library API URL for the selected book
-        let openLibraryURLString = "https://openlibrary.org/search.json?title=\(book.title)"
-        guard let openLibraryURL = URL(string: openLibraryURLString) else {
-            alertMessage = "Invalid URL."
+        // Show an alert indicating switching to Gutenberg
+        DispatchQueue.main.async {
+            alertMessage = "Fetching PDF from Gutenberg..."
+            showAlert = true
+        }
+
+        fetchAndDownloadFromGutenberg(bookTitle: book.title, book: book)
+    }
+
+    func fetchAndDownloadFromGutenberg(bookTitle: String, book: BookTTS) {
+        let gutenbergSearchURLString = "https://gutendex.com/books/?search=\(bookTitle)"
+        guard let gutenbergSearchURL = URL(string: gutenbergSearchURLString) else {
+            alertMessage = "Invalid URL for Gutenberg."
             showAlert = true
             return
         }
 
-        // Fetch book details from Open Library
-        URLSession.shared.dataTask(with: openLibraryURL) { data, response, error in
+        URLSession.shared.dataTask(with: gutenbergSearchURL) { data, response, error in
             guard let data = data, error == nil else {
                 DispatchQueue.main.async {
-                    alertMessage = "Error fetching book data."
+                    alertMessage = "Error fetching Gutenberg book data."
                     showAlert = true
                 }
                 return
             }
 
             do {
-                // Decode the response to get book's data
-                let result = try JSONDecoder().decode(OpenLibraryResponse.self, from: data)
-                if let firstDoc = result.docs.first, let coverID = firstDoc.cover_i {
-                    // Construct the PDF download URL if available
-                    let pdfURLString = "https://openlibrary.org/\(firstDoc.key)/fulltext"
-                    guard let pdfURL = URL(string: pdfURLString) else {
+                let result = try JSONDecoder().decode(GutenbergResponse.self, from: data)
+                if let firstBook = result.results.first, let pdfDownloadURLString = firstBook.formats["application/pdf"] {
+                    guard let pdfDownloadURL = URL(string: pdfDownloadURLString) else {
                         DispatchQueue.main.async {
-                            alertMessage = "No download link available for this book."
+                            alertMessage = "Invalid PDF download link for this book."
                             showAlert = true
                         }
                         return
                     }
 
                     // Proceed to download the PDF
-                    downloadBookPDF(pdfURL: pdfURL, book: book)
+                    downloadPDF(downloadURL: pdfDownloadURL, book: book)
                 } else {
                     DispatchQueue.main.async {
-                        alertMessage = "PDF not available for this book."
+                        alertMessage = "No PDF available for this book."
                         showAlert = true
                     }
                 }
             } catch {
                 DispatchQueue.main.async {
-                    alertMessage = "Error decoding Open Library data."
+                    alertMessage = "Error decoding Gutenberg data."
                     showAlert = true
                 }
             }
         }.resume()
     }
 
-    func downloadBookPDF(pdfURL: URL, book: BookTTS) {
-        // Simulate downloading the PDF from the constructed URL
+    func downloadPDF(downloadURL: URL, book: BookTTS) {
         let resourcesURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let bookDirectory = resourcesURL.appendingPathComponent("TTSBooks/\(book.title)")
 
@@ -156,32 +161,17 @@ struct APITESTView: View {
             try FileManager.default.createDirectory(at: bookDirectory, withIntermediateDirectories: true)
 
             // Download the PDF
-            let pdfData = try Data(contentsOf: pdfURL)
+            let pdfData = try Data(contentsOf: downloadURL)
             let pdfPath = bookDirectory.appendingPathComponent("\(book.title).pdf")
             try pdfData.write(to: pdfPath)
 
-            // Optionally, download the cover image
-            if let coverURL = book.coverURL, let coverData = try? Data(contentsOf: coverURL) {
-                let coverPath = bookDirectory.appendingPathComponent("\(book.title).jpg")
-                try coverData.write(to: coverPath)
-            }
-
-            // Save the book's metadata as JSON
-            let metadata = [
-                "description": book.author,
-                "pageNumber": 0
-            ] as [String: Any]
-            let metadataPath = bookDirectory.appendingPathComponent("\(book.title)_data.json")
-            let metadataData = try JSONSerialization.data(withJSONObject: metadata, options: .prettyPrinted)
-            try metadataData.write(to: metadataPath)
-
             DispatchQueue.main.async {
-                alertMessage = "Book downloaded successfully."
+                alertMessage = "PDF downloaded successfully."
                 showAlert = true
             }
         } catch {
             DispatchQueue.main.async {
-                alertMessage = "Error downloading book: \(error.localizedDescription)"
+                alertMessage = "Error downloading PDF: \(error.localizedDescription)"
                 showAlert = true
             }
         }
@@ -241,7 +231,15 @@ struct BookDoc: Decodable {
     let title: String
     let author_name: [String]?
     let cover_i: Int?
-    let key: String  // This is used to construct the PDF URL for full text download
+}
+
+struct GutenbergResponse: Decodable {
+    let results: [GutenbergBook]
+}
+
+struct GutenbergBook: Decodable {
+    let title: String
+    let formats: [String: String]
 }
 
 #Preview {
