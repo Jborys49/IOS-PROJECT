@@ -2,32 +2,110 @@ import SwiftUI
 import PDFKit
 import AVFoundation
 
+class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
+    @Published var currentPageIndex: Int = 0
+    @Published var isPlayingTTS: Bool = false
+
+    private let synthesizer = AVSpeechSynthesizer()
+    private var pdfDocument: PDFDocument?
+    private var completion: ((Bool) -> Void)?
+    private let bookPath: URL
+    private var bookDescription: String = ""
+
+    init(bookPath: URL) {
+        self.bookPath = bookPath
+        super.init()
+        synthesizer.delegate = self
+        loadBook()
+    }
+
+    func loadBook() {
+        // Load PDF
+        let pdfPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent).pdf")
+        pdfDocument = PDFDocument(url: pdfPath)
+
+        // Load JSON
+        let jsonPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent)_data.json")
+        if let jsonData = try? Data(contentsOf: jsonPath),
+           let bookData = try? JSONDecoder().decode(BookData.self, from: jsonData) {
+            bookDescription = bookData.description
+            currentPageIndex = bookData.pageNumber
+        }
+    }
+
+    func nextPage() {
+        guard let pdfDocument = pdfDocument else { return }
+        if currentPageIndex < pdfDocument.pageCount - 1 {
+            currentPageIndex += 1
+        }
+    }
+
+    func previousPage() {
+        if currentPageIndex > 0 {
+            currentPageIndex -= 1
+        }
+    }
+
+    func startTTS() {
+        guard !isPlayingTTS, let pdfDocument = pdfDocument else { return }
+        guard let page = pdfDocument.page(at: currentPageIndex),
+              let pageContent = page.string else { return }
+
+        isPlayingTTS = true
+        let utterance = AVSpeechUtterance(string: pageContent)
+        utterance.rate = 0.5
+        synthesizer.speak(utterance)
+    }
+
+    func stopTTS() {
+        synthesizer.stopSpeaking(at: .immediate)
+        isPlayingTTS = false
+    }
+
+    func saveCurrentPage() {
+        let jsonPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent)_data.json")
+        let updatedData = BookData(description: bookDescription, pageNumber: currentPageIndex)
+
+        do {
+            let jsonData = try JSONEncoder().encode(updatedData)
+            try jsonData.write(to: jsonPath)
+        } catch {
+            print("Error saving current page: \(error)")
+        }
+    }
+
+    // AVSpeechSynthesizerDelegate Methods
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        nextPage()
+        startTTS()
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        isPlayingTTS = false
+    }
+}
+
 struct IndTTSBook: View {
-    let bookPath: URL
+    @StateObject private var bookManager: TTSBookManager
 
-    @State private var pdfDocument: PDFDocument?
-    @State private var currentPageIndex: Int = 0
-    @State private var isPlayingTTS: Bool = false
-
-    private let ttsManager = TTSManager()
-
-    @State private var bookDescription: String = ""
-    @State private var pageNumber: Int = 0
+    init(bookPath: URL) {
+        _bookManager = StateObject(wrappedValue: TTSBookManager(bookPath: bookPath))
+    }
 
     var body: some View {
         VStack {
             // PDF Viewer
-            if let pdfDocument = pdfDocument {
-                PDFViewUI(pdfDocument: pdfDocument, currentPageIndex: $currentPageIndex)
+            if let pdfDocument = bookManager.pdfDocument {
+                PDFViewUI(pdfDocument: pdfDocument, currentPageIndex: $bookManager.currentPageIndex)
                     .gesture(
                         DragGesture()
                             .onEnded { value in
                                 if value.translation.width < 0 {
                                     // Swipe Right -> Forward
-                                    nextPage()
+                                    bookManager.nextPage()
                                 } else if value.translation.width > 0 {
                                     // Swipe Left -> Backward
-                                    previousPage()
+                                    bookManager.previousPage()
                                 }
                             }
                     )
@@ -42,7 +120,7 @@ struct IndTTSBook: View {
             HStack {
                 Spacer()
                 Button(action: toggleTTS) {
-                    Image(systemName: isPlayingTTS ? "stop.fill" : "play.fill")
+                    Image(systemName: bookManager.isPlayingTTS ? "stop.fill" : "play.fill")
                         .foregroundColor(.white)
                         .padding()
                         .background(Color.green)
@@ -52,81 +130,18 @@ struct IndTTSBook: View {
                 .padding()
             }
         }
-        .onAppear(perform: loadBook)
         .onDisappear {
-            saveCurrentPage()
-            stopTTS()
+            bookManager.saveCurrentPage()
+            bookManager.stopTTS()
         }
         .navigationTitle("Reading Book")
     }
 
-    private func loadBook() {
-        // Load PDF
-        let pdfPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent).pdf")
-        pdfDocument = PDFDocument(url: pdfPath)
-
-        // Load JSON data
-        let jsonPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent)_data.json")
-        if let jsonData = try? Data(contentsOf: jsonPath),
-           let bookData = try? JSONDecoder().decode(BookDataTTS.self, from: jsonData) {
-            bookDescription = bookData.description
-            pageNumber = bookData.pageNumber
-
-            // Set initial page
-            currentPageIndex = pageNumber
-        }
-    }
-
-    private func nextPage() {
-        guard let pdfDocument = pdfDocument else { return }
-        if currentPageIndex < pdfDocument.pageCount - 1 {
-            currentPageIndex += 1
-        }
-    }
-
-    private func previousPage() {
-        if currentPageIndex > 0 {
-            currentPageIndex -= 1
-        }
-    }
-
     private func toggleTTS() {
-        if isPlayingTTS {
-            stopTTS()
+        if bookManager.isPlayingTTS {
+            bookManager.stopTTS()
         } else {
-            startTTS()
-        }
-    }
-
-    private func startTTS() {
-        guard let pdfDocument = pdfDocument,
-              let page = pdfDocument.page(at: currentPageIndex),
-              let pageContent = page.string else { return }
-
-        isPlayingTTS = true
-        ttsManager.startSpeaking(text: pageContent) { [weak self] finished in
-            guard let self = self else { return }
-            if finished {
-                self.nextPage()
-                self.startTTS()
-            }
-        }
-    }
-
-    private func stopTTS() {
-        ttsManager.stopSpeaking()
-        isPlayingTTS = false
-    }
-
-    private func saveCurrentPage() {
-        let jsonPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent)_data.json")
-        let updatedData = BookData(description: bookDescription, pageNumber: currentPageIndex)
-
-        do {
-            let jsonData = try JSONEncoder().encode(updatedData)
-            try jsonData.write(to: jsonPath)
-        } catch {
-            print("Error saving current page: \(error)")
+            bookManager.startTTS()
         }
     }
 }
@@ -151,37 +166,7 @@ struct PDFViewUI: UIViewRepresentable {
 }
 
 // Data structure for book data
-struct BookDataTTS: Codable {
+struct BookData: Codable {
     let description: String
     let pageNumber: Int
-}
-
-// TTS Manager for Speech Handling
-class TTSManager: NSObject, AVSpeechSynthesizerDelegate {
-    private let synthesizer = AVSpeechSynthesizer()
-    private var completion: ((Bool) -> Void)?
-
-    override init() {
-        super.init()
-        synthesizer.delegate = self
-    }
-
-    func startSpeaking(text: String, completion: @escaping (Bool) -> Void) {
-        self.completion = completion
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.rate = 0.5
-        synthesizer.speak(utterance)
-    }
-
-    func stopSpeaking() {
-        synthesizer.stopSpeaking(at: .immediate)
-    }
-
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        completion?(true)
-    }
-
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        completion?(false)
-    }
 }
