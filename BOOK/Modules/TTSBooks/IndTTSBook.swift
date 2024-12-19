@@ -160,6 +160,24 @@ struct IndTTSBook: View {
     }
 }
 
+struct PDFViewUI: UIViewRepresentable {
+    let pdfDocument: PDFDocument
+    @Binding var currentPageIndex: Int
+
+    func makeUIView(context: Context) -> PDFView {
+        let pdfView = PDFView()
+        pdfView.displayMode = .singlePage
+        pdfView.autoScales = true
+        pdfView.document = pdfDocument
+        return pdfView
+    }
+
+    func updateUIView(_ pdfView: PDFView, context: Context) {
+        if let page = pdfDocument.page(at: currentPageIndex) {
+            pdfView.go(to: page)
+        }
+    }
+}
 // Data structure for book data
 struct BookDataTTS: Codable {
     let description: String
