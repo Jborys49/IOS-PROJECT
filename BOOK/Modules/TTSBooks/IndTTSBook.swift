@@ -11,6 +11,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private var completion: ((Bool) -> Void)?
     private let bookPath: URL
     private var bookDescription: String = ""
+    private var currentUtterance: AVSpeechUtterance?
 
     init(bookPath: URL) {
         self.bookPath = bookPath
@@ -54,12 +55,21 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         isPlayingTTS = true
         let utterance = AVSpeechUtterance(string: pageContent)
         utterance.rate = 0.5
+        currentUtterance = utterance
         synthesizer.speak(utterance)
     }
 
     func stopTTS() {
-        synthesizer.stopSpeaking(at: .immediate)
-        isPlayingTTS = false
+        if synthesizer.isSpeaking {
+            synthesizer.stopSpeaking(at: .immediate)
+            isPlayingTTS = false
+        }
+    }
+
+    func resumeTTS() {
+        guard let utterance = currentUtterance, !synthesizer.isSpeaking else { return }
+        synthesizer.speak(utterance)
+        isPlayingTTS = true
     }
 
     func saveCurrentPage() {
@@ -141,26 +151,11 @@ struct IndTTSBook: View {
         if bookManager.isPlayingTTS {
             bookManager.stopTTS()
         } else {
-            bookManager.startTTS()
-        }
-    }
-}
-
-struct PDFViewUI: UIViewRepresentable {
-    let pdfDocument: PDFDocument
-    @Binding var currentPageIndex: Int
-
-    func makeUIView(context: Context) -> PDFView {
-        let pdfView = PDFView()
-        pdfView.displayMode = .singlePage
-        pdfView.autoScales = true
-        pdfView.document = pdfDocument
-        return pdfView
-    }
-
-    func updateUIView(_ pdfView: PDFView, context: Context) {
-        if let page = pdfDocument.page(at: currentPageIndex) {
-            pdfView.go(to: page)
+            if let _ = bookManager.currentUtterance {
+                bookManager.resumeTTS()  // If speech was stopped, resume it
+            } else {
+                bookManager.startTTS()  // If not started, start speech
+            }
         }
     }
 }

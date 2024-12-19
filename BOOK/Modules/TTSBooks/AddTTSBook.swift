@@ -97,22 +97,70 @@ struct APITESTView: View {
     }
 
     func handleBookSelection(book: BookTTS) {
-        // Simulate checking the availability of the book and saving files
-        guard let pdfURL = URL(string: "https://example.com/\(book.title).pdf"), // Simulate a URL for the book's PDF
-              FileManager.default.fileExists(atPath: pdfURL.path) else {
-            alertMessage = "Could not download book."
+        // Construct the Open Library API URL for the selected book
+        let openLibraryURLString = "https://openlibrary.org/search.json?title=\(book.title)"
+        guard let openLibraryURL = URL(string: openLibraryURLString) else {
+            alertMessage = "Invalid URL."
             showAlert = true
             return
         }
 
-        do {
-            let resourcesURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            let bookDirectory = resourcesURL.appendingPathComponent("TTSBooks/\(book.title)")
+        // Fetch book details from Open Library
+        URLSession.shared.dataTask(with: openLibraryURL) { data, response, error in
+            guard let data = data, error == nil else {
+                DispatchQueue.main.async {
+                    alertMessage = "Error fetching book data."
+                    showAlert = true
+                }
+                return
+            }
 
-            // Create the directory for the book
+            do {
+                // Decode the response to get book's data
+                let result = try JSONDecoder().decode(OpenLibraryResponse.self, from: data)
+                if let firstDoc = result.docs.first, let coverID = firstDoc.cover_i {
+                    // Construct the PDF download URL if available
+                    let pdfURLString = "https://openlibrary.org/\(firstDoc.key)/fulltext"
+                    guard let pdfURL = URL(string: pdfURLString) else {
+                        DispatchQueue.main.async {
+                            alertMessage = "No download link available for this book."
+                            showAlert = true
+                        }
+                        return
+                    }
+
+                    // Proceed to download the PDF
+                    downloadBookPDF(pdfURL: pdfURL, book: book)
+                } else {
+                    DispatchQueue.main.async {
+                        alertMessage = "PDF not available for this book."
+                        showAlert = true
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    alertMessage = "Error decoding Open Library data."
+                    showAlert = true
+                }
+            }
+        }.resume()
+    }
+
+    func downloadBookPDF(pdfURL: URL, book: BookTTS) {
+        // Simulate downloading the PDF from the constructed URL
+        let resourcesURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let bookDirectory = resourcesURL.appendingPathComponent("TTSBooks/\(book.title)")
+
+        do {
+            // Create the directory for the book if it doesn't exist
             try FileManager.default.createDirectory(at: bookDirectory, withIntermediateDirectories: true)
 
-            // Save the cover image if available
+            // Download the PDF
+            let pdfData = try Data(contentsOf: pdfURL)
+            let pdfPath = bookDirectory.appendingPathComponent("\(book.title).pdf")
+            try pdfData.write(to: pdfPath)
+
+            // Optionally, download the cover image
             if let coverURL = book.coverURL, let coverData = try? Data(contentsOf: coverURL) {
                 let coverPath = bookDirectory.appendingPathComponent("\(book.title).jpg")
                 try coverData.write(to: coverPath)
@@ -127,17 +175,15 @@ struct APITESTView: View {
             let metadataData = try JSONSerialization.data(withJSONObject: metadata, options: .prettyPrinted)
             try metadataData.write(to: metadataPath)
 
-            // Save the book's PDF
-            let pdfPath = bookDirectory.appendingPathComponent("\(book.title).pdf")
-            let pdfData = try Data(contentsOf: pdfURL)
-            try pdfData.write(to: pdfPath)
-
-            alertMessage = "Book downloaded."
-            showAlert = true
+            DispatchQueue.main.async {
+                alertMessage = "Book downloaded successfully."
+                showAlert = true
+            }
         } catch {
-            print("Error saving book: \(error)")
-            alertMessage = "Could not download book."
-            showAlert = true
+            DispatchQueue.main.async {
+                alertMessage = "Error downloading book: \(error.localizedDescription)"
+                showAlert = true
+            }
         }
     }
 }
@@ -195,6 +241,7 @@ struct BookDoc: Decodable {
     let title: String
     let author_name: [String]?
     let cover_i: Int?
+    let key: String  // This is used to construct the PDF URL for full text download
 }
 
 #Preview {
