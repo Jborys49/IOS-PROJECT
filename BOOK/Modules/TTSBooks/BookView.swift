@@ -121,25 +121,6 @@ struct TTSBooksView: View {
     }
 }
 
-struct IndTTSBook: View {
-    let bookPath: URL
-
-    var body: some View {
-        VStack {
-            Text("Book Info at Path:")
-                .font(.title2)
-                .padding()
-
-            Text(bookPath.path)
-                .font(.body)
-                .padding()
-
-            Spacer()
-        }
-        .navigationTitle("Book Details")
-    }
-}
-
 struct BookData: Codable {
     let description: String
     let pageNumber: Int

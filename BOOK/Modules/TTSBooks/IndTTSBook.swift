@@ -7,7 +7,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     @Published var isPlayingTTS: Bool = false
 
     private let synthesizer = AVSpeechSynthesizer()
-    private var pdfDocument: PDFDocument?
+    var pdfDocument: PDFDocument?
     private var completion: ((Bool) -> Void)?
     private let bookPath: URL
     private var bookDescription: String = ""
@@ -27,7 +27,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         // Load JSON
         let jsonPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent)_data.json")
         if let jsonData = try? Data(contentsOf: jsonPath),
-           let bookData = try? JSONDecoder().decode(BookData.self, from: jsonData) {
+           let bookData = try? JSONDecoder().decode(BookDataTTS.self, from: jsonData) {
             bookDescription = bookData.description
             currentPageIndex = bookData.pageNumber
         }
@@ -64,7 +64,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     func saveCurrentPage() {
         let jsonPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent)_data.json")
-        let updatedData = BookData(description: bookDescription, pageNumber: currentPageIndex)
+        let updatedData = BookDataTTS(description: bookDescription, pageNumber: currentPageIndex)
 
         do {
             let jsonData = try JSONEncoder().encode(updatedData)
@@ -86,7 +86,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 }
 
 struct IndTTSBook: View {
-    @StateObject private var bookManager: TTSBookManager
+    @StateObject var bookManager: TTSBookManager
 
     init(bookPath: URL) {
         _bookManager = StateObject(wrappedValue: TTSBookManager(bookPath: bookPath))
@@ -166,7 +166,7 @@ struct PDFViewUI: UIViewRepresentable {
 }
 
 // Data structure for book data
-struct BookData: Codable {
+struct BookDataTTS: Codable {
     let description: String
     let pageNumber: Int
 }
