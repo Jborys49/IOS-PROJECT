@@ -8,7 +8,8 @@ struct IndTTSBook: View {
     @State private var pdfDocument: PDFDocument?
     @State private var currentPageIndex: Int = 0
     @State private var isPlayingTTS: Bool = false
-    @State private var synthesizer = AVSpeechSynthesizer()
+
+    private let ttsManager = TTSManager()
 
     @State private var bookDescription: String = ""
     @State private var pageNumber: Int = 0
@@ -67,13 +68,12 @@ struct IndTTSBook: View {
         // Load JSON data
         let jsonPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent)_data.json")
         if let jsonData = try? Data(contentsOf: jsonPath),
-           let bookData = try? JSONDecoder().decode(BookData.self, from: jsonData) {
+           let bookData = try? JSONDecoder().decode(BookDataTTS.self, from: jsonData) {
             bookDescription = bookData.description
             pageNumber = bookData.pageNumber
 
             // Set initial page
             currentPageIndex = pageNumber
-            pdfDocument?.go(to: pdfDocument?.page(at: currentPageIndex) ?? PDFPage())
         }
     }
 
@@ -104,14 +104,17 @@ struct IndTTSBook: View {
               let pageContent = page.string else { return }
 
         isPlayingTTS = true
-        let utterance = AVSpeechUtterance(string: pageContent)
-        utterance.rate = 0.5
-        synthesizer.delegate = self
-        synthesizer.speak(utterance)
+        ttsManager.startSpeaking(text: pageContent) { [weak self] finished in
+            guard let self = self else { return }
+            if finished {
+                self.nextPage()
+                self.startTTS()
+            }
+        }
     }
 
     private func stopTTS() {
-        synthesizer.stopSpeaking(at: .immediate)
+        ttsManager.stopSpeaking()
         isPlayingTTS = false
     }
 
@@ -125,14 +128,6 @@ struct IndTTSBook: View {
         } catch {
             print("Error saving current page: \(error)")
         }
-    }
-}
-
-extension IndTTSBook: AVSpeechSynthesizerDelegate {
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        guard isPlayingTTS else { return }
-        nextPage()
-        startTTS()
     }
 }
 
@@ -155,11 +150,38 @@ struct PDFViewUI: UIViewRepresentable {
     }
 }
 
-struct BookData: Codable {
+// Data structure for book data
+struct BookDataTTS: Codable {
     let description: String
     let pageNumber: Int
 }
 
-#Preview {
-    IndTTSBook(bookPath: URL(string: "example/path/to/book")!)
+// TTS Manager for Speech Handling
+class TTSManager: NSObject, AVSpeechSynthesizerDelegate {
+    private let synthesizer = AVSpeechSynthesizer()
+    private var completion: ((Bool) -> Void)?
+
+    override init() {
+        super.init()
+        synthesizer.delegate = self
+    }
+
+    func startSpeaking(text: String, completion: @escaping (Bool) -> Void) {
+        self.completion = completion
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.rate = 0.5
+        synthesizer.speak(utterance)
+    }
+
+    func stopSpeaking() {
+        synthesizer.stopSpeaking(at: .immediate)
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        completion?(true)
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        completion?(false)
+    }
 }
