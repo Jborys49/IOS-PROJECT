@@ -11,6 +11,8 @@ struct APITESTView: View {
     @State private var searchQuery: String = ""
     @State private var books: [BookTTS] = []
     @State private var isLoading: Bool = false
+    @State private var showAlert: Bool = false
+    @State private var alertMessage: String = ""
 
     var body: some View {
         NavigationView {
@@ -40,7 +42,11 @@ struct APITESTView: View {
                     ScrollView {
                         LazyVStack(spacing: 16) {
                             ForEach(books) { book in
-                                BookRow(book: book)
+                                Button(action: {
+                                    handleBookSelection(book: book)
+                                }) {
+                                    BookRow(book: book)
+                                }
                             }
                         }
                         .padding()
@@ -48,6 +54,9 @@ struct APITESTView: View {
                 }
             }
             .navigationTitle("Your Books")
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text(alertMessage), dismissButton: .default(Text("OK")))
+            }
         }
     }
 
@@ -85,6 +94,51 @@ struct APITESTView: View {
                 print("Error decoding data: \(error)")
             }
         }.resume()
+    }
+
+    func handleBookSelection(book: BookTTS) {
+        // Simulate checking the availability of the book and saving files
+        guard let pdfURL = URL(string: "https://example.com/\(book.title).pdf"), // Simulate a URL for the book's PDF
+              FileManager.default.fileExists(atPath: pdfURL.path) else {
+            alertMessage = "Could not download book."
+            showAlert = true
+            return
+        }
+
+        do {
+            let resourcesURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let bookDirectory = resourcesURL.appendingPathComponent("TTSBooks/\(book.title)")
+
+            // Create the directory for the book
+            try FileManager.default.createDirectory(at: bookDirectory, withIntermediateDirectories: true)
+
+            // Save the cover image if available
+            if let coverURL = book.coverURL, let coverData = try? Data(contentsOf: coverURL) {
+                let coverPath = bookDirectory.appendingPathComponent("\(book.title).jpg")
+                try coverData.write(to: coverPath)
+            }
+
+            // Save the book's metadata as JSON
+            let metadata = [
+                "description": book.author,
+                "pageNumber": 0
+            ] as [String: Any]
+            let metadataPath = bookDirectory.appendingPathComponent("\(book.title)_data.json")
+            let metadataData = try JSONSerialization.data(withJSONObject: metadata, options: .prettyPrinted)
+            try metadataData.write(to: metadataPath)
+
+            // Save the book's PDF
+            let pdfPath = bookDirectory.appendingPathComponent("\(book.title).pdf")
+            let pdfData = try Data(contentsOf: pdfURL)
+            try pdfData.write(to: pdfPath)
+
+            alertMessage = "Book downloaded."
+            showAlert = true
+        } catch {
+            print("Error saving book: \(error)")
+            alertMessage = "Could not download book."
+            showAlert = true
+        }
     }
 }
 
