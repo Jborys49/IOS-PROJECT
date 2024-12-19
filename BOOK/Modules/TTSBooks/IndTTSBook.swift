@@ -11,7 +11,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private var completion: ((Bool) -> Void)?
     private let bookPath: URL
     private var bookDescription: String = ""
-    private var currentUtterance: AVSpeechUtterance?
+    var currentUtterance: AVSpeechUtterance?
 
     init(bookPath: URL) {
         self.bookPath = bookPath
