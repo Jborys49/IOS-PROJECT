@@ -7,7 +7,7 @@ struct ContentView: View {
     var body: some View {
         TabView {
                     Tab("Your Books", systemImage: "book") {
-                //BookView()
+                TTSBooksView()
                 }
                     Tab("Your Reviews", systemImage: "bookmark") {
                 ReviewView()

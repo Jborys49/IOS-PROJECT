@@ -8,7 +8,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private let synthesizer = AVSpeechSynthesizer()
     var pdfDocument: PDFDocument?
-    private var completion: ((Bool) -> Void)?
+    //private var completion: ((Bool) -> Void)?
     private let bookPath: URL
     private var bookDescription: String = ""
     var currentUtterance: AVSpeechUtterance?
@@ -65,10 +65,8 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     }
 
     func stopTTS() {
-        if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)
             isPlayingTTS = false
-        }
     }
 
     func resumeTTS() {
@@ -91,8 +89,8 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     // AVSpeechSynthesizerDelegate Methods
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        nextPage()
-        startTTS()
+        //nextPage()
+        //startTTS()
     }
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {

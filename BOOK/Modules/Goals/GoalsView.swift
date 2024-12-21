@@ -33,6 +33,7 @@ struct GoalsView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         ForEach(items) { item in
+<<<<<<< Updated upstream
                             HStack {
                                 NavigationLink(destination: IndGoalView(directoryURL: item.url, updateProgress: updateProgress)) {
                                     VStack(alignment: .leading) {
@@ -75,6 +76,35 @@ struct GoalsView: View {
                                                 .font(.caption)
                                                 .padding(.trailing, 5)
                                         }
+=======
+                            NavigationLink(destination: IndGoalView(directoryURL: item.url)) {
+                                VStack(alignment: .leading) {
+                                    // Image
+                                    item.image
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 100, maxHeight: 100)
+                                    
+                                    // Goal Name
+                                    Text(item.name)
+                                        .font(.headline)
+                                    
+                                    // Progress View
+                                    ProgressView(value: item.completed)
+                                    
+                                    // Dates
+                                    HStack {
+                                        Text("Start: \(formattedDate(item.startDate))")
+                                            .foregroundColor(.gray)
+                                            .font(.caption)
+                                            .padding(.trailing, 5)
+                                        Spacer()
+                                        // End Date
+                                        Text("End: \(formattedDate(item.endDate))")
+                                            .foregroundColor(endDateColor(item.endDate))
+                                            .font(.caption)
+                                            .padding(.leading, 5)
+>>>>>>> Stashed changes
                                     }
                                     .padding()
                                     .frame(width: 260, height: 170)
