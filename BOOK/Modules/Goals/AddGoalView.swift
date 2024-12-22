@@ -10,98 +10,106 @@ struct AddGoalView: View {
 
     @Environment(\.presentationMode) var presentationMode // To dismiss the view
     @Binding var items: [GoalItem]
+
     var body: some View {
-        VStack(spacing: 16)
-        {
-            // Upload Picture Section
-            Button(action: { showImagePicker = true }) {
-                if let image = goalImage {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
+        ZStack {
+            VStack(spacing: 16) {
+                // Upload Picture Section
+                Button(action: { showImagePicker = true }) {
+                    if let image = goalImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 150, height: 150)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.gray, lineWidth: 1)
+                            )
+                    } else {
+                        VStack {
+                            Image(systemName: "arrow.up.circle")
+                                .font(.system(size: 40))
+                                .foregroundColor(.gray)
+                            Text("Upload picture here")
+                                .foregroundColor(.gray)
+                                .font(.subheadline)
+                        }
                         .frame(width: 150, height: 150)
+                        .background(Color.gray.opacity(0.2))
                         .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray, lineWidth: 1)
-                        )
-                } else {
-                    VStack {
-                        Image(systemName: "arrow.up.circle")
-                            .font(.system(size: 40))
-                            .foregroundColor(.gray)
-                        Text("Upload picture here")
-                            .foregroundColor(.gray)
-                            .font(.subheadline)
                     }
-                    .frame(width: 150, height: 150)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(10)
                 }
-            }
-            .sheet(isPresented: $showImagePicker) {
-                ImagePicker(image: $goalImage)
-            }
+                .sheet(isPresented: $showImagePicker) {
+                    ImagePicker(image: $goalImage)
+                }
 
-            // Goal Name TextField
-            TextField("Enter goal name", text: $goalName)
-                .padding()
-                .background(Color.gray.opacity(0.2))
-                .cornerRadius(8)
-
-            // Calendar to select the goal end date
-            DatePicker("Select goal deadline", selection: $goalEndDate, displayedComponents: .date)
-                .datePickerStyle(GraphicalDatePickerStyle())
-                .padding()
-
-            // Add Books Section
-            HStack {
-                TextField("Add a book", text: $newBook)
+                // Goal Name TextField
+                TextField("Enter goal name", text: $goalName)
                     .padding()
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
 
-                Button(action: {
-                    if !newBook.isEmpty {
-                        books.append(newBook)
-                        newBook = ""
-                    }
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.green)
-                }
-            }
+                // Calendar to select the goal end date
+                DatePicker("Select goal deadline", selection: $goalEndDate, displayedComponents: .date)
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .padding()
 
-            // Display list of books
-            ScrollView {
-                ForEach(books, id: \.self) { book in
-                    HStack {
-                        Text(book)
-                        Spacer()
-                        Button(action: {
-                            if let index = books.firstIndex(of: book) {
-                                books.remove(at: index)
-                            }
-                        }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
+                // Add Books Section
+                HStack {
+                    TextField("Add a book", text: $newBook)
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
+
+                    Button(action: {
+                        if !newBook.isEmpty {
+                            books.append(newBook)
+                            newBook = ""
                         }
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.green)
                     }
                 }
+
+                // Display list of books
+                ScrollView {
+                    ForEach(books, id: \.self) { book in
+                        HStack {
+                            Text(book)
+                            Spacer()
+                            Button(action: {
+                                if let index = books.firstIndex(of: book) {
+                                    books.remove(at: index)
+                                }
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+
+                Spacer()
             }
+            .padding()
+            .navigationTitle("Add Goal")
 
-            Spacer()
-
-            // Save Button
-            Button(action: saveGoal) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.green)
+            // Save Button in ZStack
+            VStack {
+                Spacer()
+                Button(action: saveGoal) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.green)
+                        .padding()
+                        .shadow(radius: 4)
+                }
             }
         }
-        .padding()
-        .navigationTitle("Add Goal")
     }
 
     // Save goal data
@@ -146,6 +154,7 @@ struct AddGoalView: View {
         } catch {
             print("Error saving goal data: \(error)")
         }
+
         let newitem = GoalItem(name: goalName,
                                image: Image(uiImage: goalImage ?? UIImage()),
                                completed: 0,
@@ -157,41 +166,7 @@ struct AddGoalView: View {
         presentationMode.wrappedValue.dismiss()
     }
 }
-/*
-// Image Picker for selecting an image
-struct ImagePicker: UIViewControllerRepresentable {
-    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-        let parent: ImagePicker
-
-        init(parent: ImagePicker) {
-            self.parent = parent
-        }
-
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let uiImage = info[.originalImage] as? UIImage {
-                parent.image = uiImage
-            }
-            parent.presentationMode.wrappedValue.dismiss()
-        }
-    }
-
-    @Environment(\.presentationMode) var presentationMode
-    @Binding var image: UIImage?
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
-    }
-
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.delegate = context.coordinator
-        return picker
-    }
-
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-}
-*/
 // Preview
-/*#Preview {
+#Preview {
        AddGoalView()
-}*/
+}
