@@ -57,10 +57,11 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
             // Stop any existing TTS before starting
             stopTTS()
-
+        print(pageContent)
+        print("onpage: "+String(currentPageIndex))
             isPlayingTTS = true
             let utterance = AVSpeechUtterance(string: pageContent)
-            utterance.rate = 0.8 // Adjust the speed as needed
+            utterance.rate = 0.5 // Adjust the speed as needed
             synthesizer.speak(utterance)
     }
 

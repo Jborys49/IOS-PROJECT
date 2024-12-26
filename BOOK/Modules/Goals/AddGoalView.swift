@@ -13,7 +13,7 @@ struct AddGoalView: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 16) {
+            VStack(spacing: 20) {
                 // Upload Picture Section
                 Button(action: { showImagePicker = true }) {
                     if let image = goalImage {
@@ -75,7 +75,7 @@ struct AddGoalView: View {
                 }
 
                 // Display list of books
-                ScrollView {
+                ScrollView(.horizontal) {
                     ForEach(books, id: \.self) { book in
                         HStack {
                             Text(book)
@@ -167,6 +167,6 @@ struct AddGoalView: View {
     }
 }
 // Preview
-#Preview {
+/*#Preview {
        AddGoalView()
-}
+}*/
