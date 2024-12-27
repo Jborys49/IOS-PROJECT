@@ -18,10 +18,14 @@ struct ReviewView: View {
     @State private var loaded = false
     @State private var showAlert = false
     @State private var itemToDelete: DirectoryItem? = nil
+    //filter vars
+    @State private var searchText: String = ""
+    @State private var activeFilters: [String] = []
 
     var body: some View {
         NavigationView {
             ZStack {
+                // List of Reviews
                 VStack {
                     // Search Bar
                     HStack {
@@ -65,12 +69,9 @@ struct ReviewView: View {
                             .padding(.horizontal)
                         }
                     }
-                }
-                // List of Reviews
-                VStack {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
-                            ForEach(items) { item in
+                            ForEach(filteredItems) { item in
                                 HStack {
                                     NavigationLink(destination: IndReviewView(
                                         image: item.image,
@@ -206,7 +207,7 @@ struct ReviewView: View {
                     let image: Image = fm.fileExists(atPath: imageFileURL.path) ? Image(uiImage: UIImage(contentsOfFile: imageFileURL.path) ?? UIImage()) : Image(systemName: "photo")
 
                     // Load the description
-                    var nameL = name.lowercased()
+                    let nameL = name.lowercased()
                     let descriptionFileURL = directory.appendingPathComponent("\(nameL)_data.json")
                     var description = "No description available"
                     var tags: [String] = []

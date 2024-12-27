@@ -37,33 +37,39 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     func nextPage() {
         guard let pdfDocument = pdfDocument else { return }
-        if currentPageIndex < pdfDocument.pageCount - 1 {
+        if currentPageIndex == pdfDocument.pageCount - 1{
+            currentPageIndex = 0
+        }
+        else {
             currentPageIndex += 1
         }
     }
 
     func previousPage() {
-        if currentPageIndex > 0 {
+        guard let pdfDocument = pdfDocument else { return }
+        if currentPageIndex == 0
+        {
+            currentPageIndex = pdfDocument.pageCount - 1
+        } else {
             currentPageIndex -= 1
         }
     }
 
     func startTTS() {
         guard !isPlayingTTS, let pdfDocument = pdfDocument else { return }
-            guard let page = pdfDocument.page(at: currentPageIndex),
-                  let pageContent = page.string, !pageContent.isEmpty else {
-                print("No content found on the current page.")
-                return
-            }
+        guard let page = pdfDocument.page(at: currentPageIndex) else {return}
 
-            // Stop any existing TTS before starting
-            stopTTS()
-            currentPageContent=pageContent
-            isPlayingTTS = true
-            let utterance = AVSpeechUtterance(string: pageContent)
-            utterance.rate = 0.5 // Adjust the speed as needed
-            currentUtterance = utterance
-            synthesizer.speak(utterance)
+        let pageContent = page.string
+        currentPageContent=pageContent?.isEmpty == false ? pageContent! : "   "
+
+        // Stop any existing TTS before starting
+        stopTTS()
+
+        isPlayingTTS = true
+        let utterance = AVSpeechUtterance(string: currentPageContent!)
+        utterance.rate = 0.5 // Adjust the speed as needed
+        currentUtterance = utterance
+        synthesizer.speak(utterance)
     }
 
     func stopTTS() {
@@ -100,6 +106,9 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     // AVSpeechSynthesizerDelegate Methods
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
          if isPlayingTTS {
+            isPlayingTTS=false
+            currentPageContent=nil
+            lastSpokenRange=nil
             nextPage()
             startTTS()
         }
