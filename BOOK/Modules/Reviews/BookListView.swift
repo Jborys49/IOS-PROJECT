@@ -22,7 +22,51 @@ struct ReviewView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Main Content
+                VStack {
+                    // Search Bar
+                    HStack {
+                        TextField("Search...", text: $searchText)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.horizontal)
+
+                        Button(action: {
+                            addFilter()
+                        }) {
+                            Image(systemName: "plus")
+                                .padding(10)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .clipShape(Circle())
+                        }
+                        .padding(.trailing)
+                    }
+                    .padding(.top)
+
+                    // Active Filters
+                    if !activeFilters.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(activeFilters, id: \.self) { filter in
+                                    HStack {
+                                        Text(filter)
+                                            .padding(8)
+                                            .background(Color.gray.opacity(0.2))
+                                            .cornerRadius(8)
+
+                                        Button(action: {
+                                            removeFilter(filter)
+                                        }) {
+                                            Image(systemName: "xmark.circle")
+                                                .foregroundColor(.red)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                }
+                // List of Reviews
                 VStack {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
@@ -109,6 +153,31 @@ struct ReviewView: View {
                 }
             }
         }
+    }
+
+    var filteredItems: [DirectoryItem] {
+        if activeFilters.isEmpty {
+            return items
+        } else {
+            return items.filter { item in
+                activeFilters.allSatisfy { filter in
+                    item.name.localizedCaseInsensitiveContains(filter) ||
+                    item.tags.contains { $0.localizedCaseInsensitiveContains(filter) }
+                }
+            }
+        }
+    }
+
+    func addFilter() {
+        let trimmedText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedText.isEmpty && !activeFilters.contains(trimmedText) {
+            activeFilters.append(trimmedText)
+        }
+        searchText = ""
+    }
+
+    func removeFilter(_ filter: String) {
+        activeFilters.removeAll { $0 == filter }
     }
 
     func ensureLoadOnce() {
