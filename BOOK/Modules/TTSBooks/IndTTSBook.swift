@@ -8,9 +8,9 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     private let synthesizer = AVSpeechSynthesizer()
     var pdfDocument: PDFDocument?
-    //private var completion: ((Bool) -> Void)?
     private let bookPath: URL
     private var bookDescription: String = ""
+    private var lastSpokenRange: NSRange? //for resuming
     var currentUtterance: AVSpeechUtterance?
 
     init(bookPath: URL) {
@@ -66,15 +66,23 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     }
 
     func stopTTS() {
+            guard synthesizer.isSpeaking else { return }
             synthesizer.stopSpeaking(at: .immediate)
             isPlayingTTS = false
     }
 
     func resumeTTS() {
-        guard let utterance = currentUtterance, !synthesizer.isSpeaking else { return }
-        synthesizer.speak(utterance)
-        isPlayingTTS = true
-    }
+            guard !synthesizer.isSpeaking, let content = currentPageContent else { return }
+            if let range = lastSpokenRange {
+                let substring = (content as NSString).substring(from: range.location)
+                let utterance = AVSpeechUtterance(string: substring)
+                utterance.rate = 0.5
+                synthesizer.speak(utterance)
+            } else {
+                startTTS() // Start from the beginning if no range is available
+            }
+            isPlayingTTS = true
+        }
 
     func saveCurrentPage() {
         let jsonPath = bookPath.appendingPathComponent("\(bookPath.lastPathComponent)_data.json")
@@ -90,9 +98,15 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
     // AVSpeechSynthesizerDelegate Methods
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        //nextPage()
-        //startTTS()
+         if isPlayingTTS {
+            nextPage()
+            startTTS()
+        }
     }
+
+     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
+            lastSpokenRange = characterRange // Update the range as the synthesizer progresses
+        }
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
         isPlayingTTS = false
