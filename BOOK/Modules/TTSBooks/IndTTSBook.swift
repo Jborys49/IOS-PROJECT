@@ -11,6 +11,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     private let bookPath: URL
     private var bookDescription: String = ""
     private var lastSpokenRange: NSRange? //for resuming
+    private var currentPageContent: String?
     var currentUtterance: AVSpeechUtterance?
 
     init(bookPath: URL) {
@@ -57,11 +58,11 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
 
             // Stop any existing TTS before starting
             stopTTS()
-        print(pageContent)
-        print("onpage: "+String(currentPageIndex))
+            currentPageContent=pageContent
             isPlayingTTS = true
             let utterance = AVSpeechUtterance(string: pageContent)
             utterance.rate = 0.5 // Adjust the speed as needed
+            currentUtterance = utterance
             synthesizer.speak(utterance)
     }
 
@@ -170,9 +171,11 @@ struct IndTTSBook: View {
             bookManager.stopTTS()
         } else {
             if let _ = bookManager.currentUtterance {
+                print("resume")
                 bookManager.resumeTTS()  // If speech was stopped, resume it
             } else {
                 bookManager.startTTS()  // If not started, start speech
+                print("start")
             }
         }
     }
