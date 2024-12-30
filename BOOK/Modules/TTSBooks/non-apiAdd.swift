@@ -129,8 +129,8 @@ struct AddTTSBook: View {
             try jsonData.write(to: jsonURL)
 
             // Add to items for UI refresh
-            let newItem = DirectoryItem(name: bookName, image: Image(uiImage: selectedImage))
-            items.append(newItem)
+            let newItem = TTSBookItem(name: bookName, image: Image(uiImage: selectedImage ?? UIImage()),description: description,path:bookDirectoryURL)
+            books.append(newItem)
 
             // Dismiss the view
             presentationMode.wrappedValue.dismiss()

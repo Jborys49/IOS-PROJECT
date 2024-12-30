@@ -68,7 +68,7 @@ struct TTSBooksView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        NavigationLink(destination: addTTSBook(books: $books)) {
+                        NavigationLink(destination: AddTTSBook(books: $books)) {
                             Image(systemName: "plus")
                                 .font(.system(size: 30))
                                 .foregroundColor(.white)
