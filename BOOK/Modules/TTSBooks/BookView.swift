@@ -11,6 +11,8 @@ struct TTSBookItem: Identifiable {
 struct TTSBooksView: View {
     @State private var books: [TTSBookItem] = []
     @State private var loaded = false
+    @State private var bookToDelete: TTSBookItem? = nil
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         NavigationView {
@@ -19,8 +21,8 @@ struct TTSBooksView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             ForEach(books) { book in
-                                NavigationLink(destination: IndTTSBook(bookPath: book.path)) {
-                                    HStack {
+                                HStack {
+                                    NavigationLink(destination: IndTTSBook(bookPath: book.path)) {
                                         // Display cover image
                                         book.image
                                             .resizable()
@@ -39,11 +41,21 @@ struct TTSBooksView: View {
 
                                         Spacer()
                                     }
-                                    .padding()
-                                    .background(Color.white)
-                                    .cornerRadius(10)
-                                    .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+
+                                    // Trash can button
+                                    Button(action: {
+                                        bookToDelete = book
+                                        showDeleteConfirmation = true
+                                    }) {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.red)
+                                            .font(.title2)
+                                    }
                                 }
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                             }
                         }
                         .padding()
@@ -56,7 +68,7 @@ struct TTSBooksView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        NavigationLink(destination: APITESTView()) {
+                        NavigationLink(destination: addTTSBook(books: $books)) {
                             Image(systemName: "plus")
                                 .font(.system(size: 30))
                                 .foregroundColor(.white)
@@ -70,6 +82,18 @@ struct TTSBooksView: View {
                 }
             }
             .navigationTitle("TTS Books")
+            .alert(isPresented: $showDeleteConfirmation) {
+                Alert(
+                    title: Text("Delete Book"),
+                    message: Text("Are you sure you want to delete \(bookToDelete?.name ?? "this book")?"),
+                    primaryButton: .destructive(Text("Delete")) {
+                        if let book = bookToDelete {
+                            deleteBook(book)
+                        }
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
         }
     }
 
@@ -117,6 +141,19 @@ struct TTSBooksView: View {
             }
         } catch {
             print("Error reading TTSBooks directory: \(error.localizedDescription)")
+        }
+    }
+
+    func deleteBook(_ book: TTSBookItem) {
+        let fm = FileManager.default
+
+        do {
+            // Delete the directory
+            try fm.removeItem(at: book.path)
+            // Remove from the books array
+            books.removeAll { $0.id == book.id }
+        } catch {
+            print("Error deleting book \(book.name): \(error.localizedDescription)")
         }
     }
 }

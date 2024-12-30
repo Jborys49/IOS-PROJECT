@@ -102,7 +102,7 @@ struct AddReview: View {
                     ForEach(tags, id: \.self) { tag in
                         Text(tag)
                             .padding(.horizontal)
-                            .padding(.vertical, 5)
+                            .padding(.vertical, 15)
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(12)
                             .overlay(
