@@ -131,7 +131,7 @@ struct GoalsView: View {
         guard let baseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return
         }
-                let goalsURL = baseDataURL.appendingPathComponent("Goals") // Base directory for goals
+                let goalsURL = baseDataURL.appendingPathComponent("BookKeepGoals") // Base directory for goals
 
                 do {
                     // Get the list of directories in the base URL

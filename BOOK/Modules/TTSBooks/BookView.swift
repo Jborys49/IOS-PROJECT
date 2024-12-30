@@ -111,7 +111,7 @@ struct TTSBooksView: View {
             return
         }
 
-        let ttsBooksDirectory = baseDirectory.appendingPathComponent("TTSBooks")
+        let ttsBooksDirectory = baseDirectory.appendingPathComponent("BookKeepTTSBooks")
 
         do {
             let directories = try fm.contentsOfDirectory(at: ttsBooksDirectory, includingPropertiesForKeys: nil)
