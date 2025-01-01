@@ -237,7 +237,7 @@ struct ReviewView: View {
         guard let BaseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return
         }
-        let ReadBooksURL = BaseDataURL.appendingPathComponent("ReadBooks")
+        let ReadBooksURL = BaseDataURL.appendingPathComponent("BookKeepReviews")
         print(ReadBooksURL)
         let directoryToDelete = ReadBooksURL.appendingPathComponent(item.name)
 

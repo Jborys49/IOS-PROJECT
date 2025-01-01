@@ -75,7 +75,7 @@ struct AddGoalView: View {
                 }
 
                 // Display list of books
-                ScrollView(.horizontal) {
+                ScrollView(.vertical) {
                     ForEach(books, id: \.self) { book in
                         HStack {
                             Text(book)
@@ -117,7 +117,7 @@ struct AddGoalView: View {
         guard !goalName.isEmpty else { return } // Ensure goal name is not empty
 
         let fileManager = FileManager.default
-        guard let goalsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Goals") else {
+        guard let goalsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("BookKeepGoals") else {
             return
         }
 

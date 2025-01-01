@@ -101,8 +101,8 @@ struct AddReview: View {
                 HStack {
                     ForEach(tags, id: \.self) { tag in
                         Text(tag)
-                            .padding(.horizontal)
-                            .padding(.vertical, 15)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(12)
                             .overlay(
@@ -152,7 +152,7 @@ struct AddReview: View {
             return
         }
         
-        let readBooksURL = baseURL.appendingPathComponent("ReadBooks")
+        let readBooksURL = baseURL.appendingPathComponent("BookKeepReviews")
         let bookDirectoryURL = readBooksURL.appendingPathComponent(bookName)
         
         do {
