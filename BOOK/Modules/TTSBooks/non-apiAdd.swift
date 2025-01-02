@@ -7,6 +7,7 @@ struct AddTTSBook: View {
     @State private var pdfUploaded: Bool = false
     @State private var showImagePicker = false
     @State private var showPDFPicker = false
+    @State private var pdfURL: URL? = nil
     @Environment(\.presentationMode) var presentationMode // To dismiss view
     @Binding var books: [TTSBookItem] // Refreshing the view after adding the book
 
@@ -76,9 +77,11 @@ struct AddTTSBook: View {
                     .cornerRadius(8)
             }
             .sheet(isPresented: $showPDFPicker) {
-                PDFPicker(onPDFSelected: { _ in
-                    pdfUploaded = true
-                })
+                PDFPicker(onPDFSelected: { selectedPDFURL in
+                                                 pdfURL = selectedPDFURL
+                                                 pdfUploaded = true // Indicate a PDF has been selected
+                                             }
+                )
             }
 
             Spacer()
@@ -110,7 +113,7 @@ struct AddTTSBook: View {
             return
         }
 
-        let ttsBooksURL = baseURL.appendingPathComponent("ttsbooks")
+        let ttsBooksURL = baseURL.appendingPathComponent("BookKeepTTSBooks")
         let bookDirectoryURL = ttsBooksURL.appendingPathComponent(bookName)
 
         do {
@@ -127,6 +130,10 @@ struct AddTTSBook: View {
             let jsonURL = bookDirectoryURL.appendingPathComponent("\(bookName)_data.json")
             let jsonData = try JSONSerialization.data(withJSONObject: ["description": description, "pagenumber": 0], options: .prettyPrinted)
             try jsonData.write(to: jsonURL)
+
+            // Save the PDF
+                    let pdfDestinationURL = bookDirectoryURL.appendingPathComponent("\(bookName).pdf")
+                    try fm.copyItem(at: pdfURL, to: pdfDestinationURL)
 
             // Add to items for UI refresh
             let newItem = TTSBookItem(name: bookName, image: Image(uiImage: selectedImage ?? UIImage()),description: description,path:bookDirectoryURL)
