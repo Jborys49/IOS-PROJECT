@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import PDFKit
 
 struct BookTTS: Identifiable {
     let id = UUID()
@@ -98,9 +99,8 @@ struct APITESTView: View {
     }
 
     func handleBookSelection(book: BookTTS) {
-        // Show an alert indicating switching to Gutenberg
         DispatchQueue.main.async {
-            alertMessage = "Fetching PDF from Gutenberg..."
+            alertMessage = "Fetching plain text from Gutenberg..."
             showAlert = true
         }
 
@@ -126,20 +126,20 @@ struct APITESTView: View {
 
             do {
                 let result = try JSONDecoder().decode(GutenbergResponse.self, from: data)
-                if let firstBook = result.results.first, let pdfDownloadURLString = firstBook.formats["application/pdf"] {
-                    guard let pdfDownloadURL = URL(string: pdfDownloadURLString) else {
+                if let firstBook = result.results.first, let textDownloadURLString = firstBook.formats["text/plain; charset=utf-8"] {
+                    guard let textDownloadURL = URL(string: textDownloadURLString) else {
                         DispatchQueue.main.async {
-                            alertMessage = "Invalid PDF download link for this book."
+                            alertMessage = "Invalid text download link for this book."
                             showAlert = true
                         }
                         return
                     }
 
-                    // Proceed to download the PDF
-                    downloadPDF(downloadURL: pdfDownloadURL, book: book)
+                    // Proceed to download the plain text and convert to PDF
+                    downloadAndConvertTextToPDF(downloadURL: textDownloadURL, book: book)
                 } else {
                     DispatchQueue.main.async {
-                        alertMessage = "No PDF available for this book."
+                        alertMessage = "No plain text available for this book."
                         showAlert = true
                     }
                 }
@@ -152,7 +152,7 @@ struct APITESTView: View {
         }.resume()
     }
 
-    func downloadPDF(downloadURL: URL, book: BookTTS) {
+    func downloadAndConvertTextToPDF(downloadURL: URL, book: BookTTS) {
         let resourcesURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let bookDirectory = resourcesURL.appendingPathComponent("TTSBooks/\(book.title)")
 
@@ -160,10 +160,19 @@ struct APITESTView: View {
             // Create the directory for the book if it doesn't exist
             try FileManager.default.createDirectory(at: bookDirectory, withIntermediateDirectories: true)
 
-            // Download the PDF
-            let pdfData = try Data(contentsOf: downloadURL)
+            // Download the text
+            let textData = try Data(contentsOf: downloadURL)
+            guard let text = String(data: textData, encoding: .utf8) else {
+                DispatchQueue.main.async {
+                    alertMessage = "Error decoding text content."
+                    showAlert = true
+                }
+                return
+            }
+
+            // Convert to PDF
             let pdfPath = bookDirectory.appendingPathComponent("\(book.title).pdf")
-            try pdfData.write(to: pdfPath)
+            createPDF(from: text, saveTo: pdfPath)
 
             DispatchQueue.main.async {
                 alertMessage = "PDF downloaded successfully."
@@ -171,9 +180,33 @@ struct APITESTView: View {
             }
         } catch {
             DispatchQueue.main.async {
-                alertMessage = "Error downloading PDF: \(error.localizedDescription)"
+                alertMessage = "Error downloading or converting text: \(error.localizedDescription)"
                 showAlert = true
             }
+        }
+    }
+
+    func createPDF(from text: String, saveTo url: URL) {
+        let pdfMetaData = [
+            kCGPDFContextCreator: "Book Downloader",
+            kCGPDFContextAuthor: "Gutenberg"
+        ]
+        let format = UIGraphicsPDFRendererFormat()
+        format.documentInfo = pdfMetaData as [String: Any]
+
+        let pageWidth = 612.0
+        let pageHeight = 792.0
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight), format: format)
+
+        do {
+            try renderer.writePDF(to: url) { context in
+                context.beginPage()
+                let attributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 12)]
+                let textRect = CGRect(x: 20, y: 20, width: pageWidth - 40, height: pageHeight - 40)
+                text.draw(in: textRect, withAttributes: attributes)
+            }
+        } catch {
+            print("Could not create PDF: \(error)")
         }
     }
 }
