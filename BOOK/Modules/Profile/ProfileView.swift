@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var profileImage: UIImage = UIImage(named: "defaultProfile")! // Default profile picture
-    @State private var username: String // Default username
+    @State private var profileImage: UIImage = UIImage(named: "ProfileDefPic")! // Default profile picture
+    @State private var username: String = "User"// Default username
     @State private var installationDate: String = ""
     @State private var reviews: Int = 0
     @State private var goalsCompleted: Int = 0
@@ -20,9 +20,9 @@ struct ProfileView: View {
                     Image(uiImage: profileImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .frame(width: 100, height: 100)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.gray, lineWidth: 2))
+                        .frame(width: 300, height: 300)
+                        .clipShape(Rectangle())
+                        .overlay(Rectangle().stroke(Color.gray, lineWidth: 2))
                         .shadow(radius: 5)
                 }
                 .padding()
@@ -51,7 +51,6 @@ struct ProfileView: View {
                 Spacer()
             }
             .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.inline)
             .onAppear(perform: loadProfileData)
             .onDisappear(perform: saveProfileData)
         }
@@ -117,41 +116,7 @@ struct ProfileData: Codable {
     var goalsc: Int
 }
 
-// Helper View for Image Picker
-struct ImagePicker: UIViewControllerRepresentable {
-    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-        let parent: ImagePicker
-
-        init(parent: ImagePicker) {
-            self.parent = parent
-        }
-
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            if let image = info[.originalImage] as? UIImage {
-                parent.image = image
-            }
-            picker.dismiss(animated: true)
-        }
-    }
-
-    @Binding var image: UIImage?
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
-    }
-
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.delegate = context.coordinator
-        return picker
-    }
-
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-}
-
 // Preview for SwiftUI Canvas
-struct ProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        ProfileView()
-    }
+#Preview{
+    ProfileView()
 }
