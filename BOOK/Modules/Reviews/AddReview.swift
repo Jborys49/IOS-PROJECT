@@ -154,8 +154,23 @@ struct AddReview: View {
         
         let readBooksURL = baseURL.appendingPathComponent("BookKeepReviews")
         let bookDirectoryURL = readBooksURL.appendingPathComponent(bookName)
-        
+        let profileJSON = baseURL.appendingPathComponent("BookKeepProfile").appendingPathComponent("profile_data.json")
         do {
+        //increment number of reviews written for profile
+            if let jsonData = try? Data(contentsOf: jsonFile),
+                   var profileData = try? JSONDecoder().decode(ProfileData.self, from: jsonData) {
+                    // Increment reviews and goalsc
+                    profileData.reviews +=1
+                    // Save updated JSON data
+                    if let updatedJsonData = try? JSONEncoder().encode(profileData) {
+                        try? updatedJsonData.write(to: profileJSON)
+                        print("Profile data updated successfully.")
+                    } else {
+                        print("Failed to encode updated profile data.")
+                    }
+                } else {
+                    print("Failed to load profile data.")
+                }
             // Create the book directory
             try fm.createDirectory(at: bookDirectoryURL, withIntermediateDirectories: true, attributes: nil)
             

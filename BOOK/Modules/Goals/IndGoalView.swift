@@ -138,6 +138,31 @@ struct IndGoalView: View {
         let total = books.count
         let completed = books.filter { $0.isCompleted }.count
         let progress = total > 0 ? Double(completed) / Double(total) : 0.0
+
+        //update profile if needed
+        if progress == 1.0 {
+         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let profileDirectory = documentsURL.appendingPathComponent("BookKeepProfile")
+            let jsonFile = profileDirectory.appendingPathComponent("profile_data.json")
+
+            // Load JSON data
+            if let jsonData = try? Data(contentsOf: jsonFile),
+               var profileData = try? JSONDecoder().decode(ProfileData.self, from: jsonData) {
+
+                // Increment goal
+                profileData.goalsc += 1
+
+                // Save updated JSON data
+                if let updatedJsonData = try? JSONEncoder().encode(profileData) {
+                    try? updatedJsonData.write(to: jsonFile)
+                    print("Profile data updated successfully.")
+                } else {
+                    print("Failed to encode updated profile data.")
+                }
+            } else {
+                print("Failed to load profile data.")
+            }
+        }
         updateProgress(directoryURL, progress)
     }
 }
