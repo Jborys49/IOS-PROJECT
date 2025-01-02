@@ -13,69 +13,69 @@ struct AddGoalView: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 20) {
-                // Upload Picture Section
-                Button(action: { showImagePicker = true }) {
-                    if let image = goalImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Upload Picture Section
+                    Button(action: { showImagePicker = true }) {
+                        if let image = goalImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 150, height: 150)
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
+                        } else {
+                            VStack {
+                                Image(systemName: "arrow.up.circle")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                                Text("Upload picture here")
+                                    .foregroundColor(.gray)
+                                    .font(.subheadline)
+                            }
                             .frame(width: 150, height: 150)
+                            .background(Color.gray.opacity(0.2))
                             .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.gray, lineWidth: 1)
-                            )
-                    } else {
-                        VStack {
-                            Image(systemName: "arrow.up.circle")
-                                .font(.system(size: 40))
-                                .foregroundColor(.gray)
-                            Text("Upload picture here")
-                                .foregroundColor(.gray)
-                                .font(.subheadline)
                         }
-                        .frame(width: 150, height: 150)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
                     }
-                }
-                .sheet(isPresented: $showImagePicker) {
-                    ImagePicker(image: $goalImage)
-                }
+                    .sheet(isPresented: $showImagePicker) {
+                        ImagePicker(image: $goalImage)
+                    }
 
-                // Goal Name TextField
-                TextField("Enter goal name", text: $goalName)
-                    .padding()
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
-
-                // Calendar to select the goal end date
-                DatePicker("Select goal deadline", selection: $goalEndDate, displayedComponents: .date)
-                    .datePickerStyle(GraphicalDatePickerStyle())
-                    .padding()
-
-                // Add Books Section
-                HStack {
-                    TextField("Add a book", text: $newBook)
+                    // Goal Name TextField
+                    TextField("Enter goal name", text: $goalName)
                         .padding()
                         .background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
 
-                    Button(action: {
-                        if !newBook.isEmpty {
-                            books.append(newBook)
-                            newBook = ""
-                        }
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.green)
-                    }
-                }
+                    // Calendar to select the goal end date
+                    DatePicker("Select goal deadline", selection: $goalEndDate, displayedComponents: .date)
+                        .datePickerStyle(GraphicalDatePickerStyle())
+                        .padding()
 
-                // Display list of books
-                ScrollView(.vertical) {
+                    // Add Books Section
+                    HStack {
+                        TextField("Add a book", text: $newBook)
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(8)
+
+                        Button(action: {
+                            if !newBook.isEmpty {
+                                books.append(newBook)
+                                newBook = ""
+                            }
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title)
+                                .foregroundColor(.green)
+                        }
+                    }
+
+                    // Display list of books
                     ForEach(books, id: \.self) { book in
                         HStack {
                             Text(book)
@@ -92,11 +92,9 @@ struct AddGoalView: View {
                         .padding(.vertical, 4)
                     }
                 }
-
-                Spacer()
+                .padding()
             }
-            .padding()
-            .navigationTitle("Add Goal")
+            .padding(.bottom, 80) // To avoid overlapping with the button
 
             // Save Button in ZStack
             VStack {
@@ -108,8 +106,10 @@ struct AddGoalView: View {
                         .padding()
                         .shadow(radius: 4)
                 }
+                .padding(.bottom, 20) // Add padding from the bottom
             }
         }
+        .navigationTitle("Add Goal")
     }
 
     // Save goal data
@@ -166,7 +166,3 @@ struct AddGoalView: View {
         presentationMode.wrappedValue.dismiss()
     }
 }
-// Preview
-/*#Preview {
-       AddGoalView()
-}*/
