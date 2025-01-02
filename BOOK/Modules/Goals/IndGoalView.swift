@@ -34,9 +34,7 @@ struct IndGoalView: View {
                         Spacer()
                         Toggle("", isOn: $book.isCompleted)
                             .labelsHidden()
-                            .onChange(of: book.isCompleted) { _ in
-                                recalculateProgress()
-                            }
+                            
                     }
                 }
             }
