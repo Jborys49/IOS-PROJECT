@@ -102,7 +102,7 @@ struct AddTTSBook: View {
     }
 
     func saveTTSBook() {
-        guard !bookName.isEmpty, let image = selectedImage, pdfUploaded else {
+        guard !bookName.isEmpty, let image = selectedImage, pdfUploaded,let pdfURL=pdfURL else { //the let = is to make it not optional
             print("Error: Missing book name, image, or PDF")
             return
         }

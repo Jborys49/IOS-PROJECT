@@ -108,6 +108,7 @@ struct APITESTView: View {
     }
 
     func fetchAndDownloadFromGutenberg(bookTitle: String, book: BookTTS) {
+        print(bookTitle)
         let gutenbergSearchURLString = "https://gutendex.com/books/?search=\(bookTitle)"
         guard let gutenbergSearchURL = URL(string: gutenbergSearchURLString) else {
             alertMessage = "Invalid URL for Gutenberg."
@@ -126,7 +127,7 @@ struct APITESTView: View {
 
             do {
                 let result = try JSONDecoder().decode(GutenbergResponse.self, from: data)
-                if let firstBook = result.results.first, let textDownloadURLString = firstBook.formats["text/plain; charset=utf-8"] {
+                if let firstBook = result.results.first, let textDownloadURLString = firstBook.formats["text/plain"] {
                     guard let textDownloadURL = URL(string: textDownloadURLString) else {
                         DispatchQueue.main.async {
                             alertMessage = "Invalid text download link for this book."
