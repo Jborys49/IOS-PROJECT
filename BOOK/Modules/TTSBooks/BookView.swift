@@ -160,7 +160,7 @@ struct TTSBooksView: View {
 
 struct BookData: Codable {
     let description: String
-    let pageNumber: Int
+    let pagenumber: Int
 }
 
 #Preview {

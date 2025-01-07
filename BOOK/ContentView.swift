@@ -2,7 +2,16 @@ import SwiftUI
 import AVKit
 
 struct ContentView: View {
-
+    init(){
+        let appearence = UITabBarAppearance()
+        appearence.configureWithOpaqueBackground()
+        appearence.backgroundColor = UIColor.systemGreen
+        
+        UITabBar.appearance().standardAppearance = appearence
+        UITabBar.appearance().scrollEdgeAppearance = appearence
+        UITabBar.appearance().unselectedItemTintColor = .white
+        //UITabBar.appearance().tintColor = UIColor.white
+    }
     var body: some View {
         TabView {
             Tab("Your Books", systemImage: "book") {
@@ -18,6 +27,7 @@ struct ContentView: View {
                 ProfileView()
             }
         }
+        .accentColor(.orange)
     }
 }
 
