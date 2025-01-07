@@ -120,7 +120,7 @@ struct TTSBooksView: View {
                     let bookName = directory.lastPathComponent
 
                     // Load the book cover image
-                    let coverPath = directory.appendingPathComponent("\(bookName).jpg")
+                    let coverPath = directory.appendingPathComponent("\(bookName).png")
                     let coverImage: Image = fm.fileExists(atPath: coverPath.path) ? Image(uiImage: UIImage(contentsOfFile: coverPath.path) ?? UIImage()) : Image(systemName: "book")
 
                     // Load the description from JSON
