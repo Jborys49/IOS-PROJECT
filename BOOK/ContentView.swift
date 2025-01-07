@@ -22,8 +22,8 @@ struct ContentView: View {
                     }
                 }
             } else {
-                VideoPlayerView(videoName: "intro", onVideoEnd: {
-                    showTabView = true // Show the TabView after the video finishes
+                VideoPlayerView(videoName: "Intro", onVideoEnd: {
+                    showTabView = true // Transition to TabView after video ends
                 })
                 .edgesIgnoringSafeArea(.all)
             }
@@ -31,7 +31,6 @@ struct ContentView: View {
     }
 }
 
-// VideoPlayerView to play the intro video
 struct VideoPlayerView: View {
     let videoName: String
     let onVideoEnd: () -> Void
@@ -39,14 +38,11 @@ struct VideoPlayerView: View {
     var body: some View {
         VideoPlayer(player: player)
             .onAppear {
-                player.play()
-                NotificationCenter.default.addObserver(
-                    forName: .AVPlayerItemDidPlayToEndTime,
-                    object: player.currentItem,
-                    queue: .main
-                ) { _ in
-                    onVideoEnd()
-                }
+                player.play() // Automatically start playback when view appears
+                setupVideoEndObserver()
+            }
+            .onDisappear {
+                NotificationCenter.default.removeObserver(self) // Cleanup observer
             }
     }
 
@@ -55,6 +51,16 @@ struct VideoPlayerView: View {
             fatalError("Video file \(videoName) not found")
         }
         return AVPlayer(url: url)
+    }
+
+    private func setupVideoEndObserver() {
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: player.currentItem,
+            queue: .main
+        ) { _ in
+            onVideoEnd() // Trigger the closure when the video finishes
+        }
     }
 }
 
