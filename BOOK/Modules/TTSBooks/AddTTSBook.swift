@@ -1,281 +1,206 @@
 import SwiftUI
-import Foundation
-import PDFKit
 
-struct BookTTS: Identifiable {
-    let id = UUID()
-    let title: String
-    let author: String
-    let coverURL: URL?
-}
-
-struct APITESTView: View {
-    @State private var searchQuery: String = ""
-    @State private var books: [BookTTS] = []
-    @State private var isLoading: Bool = false
-    @State private var showAlert: Bool = false
-    @State private var alertMessage: String = ""
+struct AddTTSView: View {
+    @State private var bookName: String = ""
+    @State private var description: String = ""
+    @State private var selectedImage: UIImage? = nil
+    @State private var pdfUploaded: Bool = false
+    @State private var showImagePicker = false
+    @State private var showPDFPicker = false
+    @State private var pdfURL: URL? = nil
+    @Binding var books: [TTSBookItem] // Refreshing the view after adding the book
+    @StateObject private var viewModel = BookViewModel()
+    @Environment(\.presentationMode) var presentationMode // To dismiss view
 
     var body: some View {
-        NavigationView {
-            VStack {
-                // Search Bar
-                HStack {
-                    TextField("Search for a book", text: $searchQuery)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+        VStack {
+            // Static Header with Save Button
+            HStack {
+                Spacer()
+                Button(action: saveTTSBook) {
+                    Image(systemName: "checkmark")
+                        .font(.largeTitle)
+                        .foregroundColor(.white)
                         .padding()
-
-                    Button(action: searchBooks) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.title2)
-                            .padding()
-                    }
+                        .background(Color.green)
+                        .clipShape(Circle())
+                        .shadow(radius: 5)
                 }
+            }
+            .padding()
+            .background(Color(UIColor.systemBackground))
+            .zIndex(1) // Keeps button on top
 
-                // Display Results
-                if isLoading {
-                    ProgressView()
-                        .padding()
-                } else if books.isEmpty && !searchQuery.isEmpty {
-                    Text("No results found.")
-                        .foregroundColor(.gray)
-                        .padding()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(books) { book in
-                                Button(action: {
-                                    handleBookSelection(book: book)
-                                }) {
-                                    BookRow(book: book)
+            ScrollView {
+                VStack(spacing: 20) {
+                    // AddTTSBook Section
+                    VStack(spacing: 20) {
+                        // Image Upload Section
+                        Button(action: {
+                            showImagePicker = true
+                        }) {
+                            if let selectedImage = selectedImage {
+                                Image(uiImage: selectedImage)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 150, height: 150)
+                                    .clipShape(Circle())
+                            } else {
+                                VStack {
+                                    Image(systemName: "arrow.up.to.line")
+                                        .font(.system(size: 40))
+                                    Text("Upload cover image")
+                                        .font(.caption)
+                                }
+                                .frame(width: 150, height: 150)
+                                .background(Color.gray.opacity(0.2))
+                                .clipShape(Circle())
+                            }
+                        }
+                        .sheet(isPresented: $showImagePicker) {
+                            ImagePicker(image: $selectedImage)
+                        }
+
+                        // Book Name Input
+                        TextField("Book Name", text: $bookName)
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(8)
+                            .frame(maxWidth: .infinity)
+
+                        // Description Input
+                        TextField("Description", text: $description)
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(8)
+                            .frame(maxWidth: .infinity)
+
+                        // PDF Upload Section
+                        Button(action: {
+                            showPDFPicker = true
+                        }) {
+                            Text(pdfUploaded ? "PDF Uploaded" : "Upload PDF")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(pdfUploaded ? Color.green : Color.blue)
+                                .cornerRadius(8)
+                        }
+                        .sheet(isPresented: $showPDFPicker) {
+                            PDFPicker(onPDFSelected: { selectedPDFURL in
+                                pdfURL = selectedPDFURL
+                                pdfUploaded = true
+                            })
+                        }
+                    }
+                    .padding()
+                    .background(Color(UIColor.systemGroupedBackground))
+                    .cornerRadius(12)
+
+                    // lastapiView Section
+                    VStack {
+                        HStack {
+                            TextField("Search books", text: $viewModel.searchText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .padding()
+
+                            Button(action: {
+                                viewModel.searchBooks()
+                            }) {
+                                Text("Search")
+                            }
+                            .padding()
+                        }
+
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .padding()
+                        } else {
+                            ScrollView {
+                                LazyVStack {
+                                    ForEach(viewModel.books) { book in
+                                        HStack {
+                                            AsyncImage(url: URL(string: book.coverURL)) { image in
+                                                image.resizable()
+                                            } placeholder: {
+                                                Color.gray
+                                            }
+                                            .frame(width: 60, height: 80)
+                                            .cornerRadius(8)
+
+                                            VStack(alignment: .leading) {
+                                                Text(book.title)
+                                                    .font(.headline)
+
+                                                Text(book.description)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
+                                            }
+
+                                            Spacer()
+                                        }
+                                        .padding()
+                                        .onTapGesture {
+                                            viewModel.saveBook(book)
+                                            presentationMode.wrappedValue.dismiss()
+                                        }
+                                    }
                                 }
                             }
                         }
-                        .padding()
                     }
                 }
-            }
-            .navigationTitle("Your Books")
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text(alertMessage), dismissButton: .default(Text("OK")))
+                .padding()
             }
         }
     }
 
-    func searchBooks() {
-        guard !searchQuery.isEmpty else { return }
-
-        isLoading = true
-        books.removeAll()
-
-        let query = searchQuery.replacingOccurrences(of: " ", with: "+")
-        let urlString = "https://openlibrary.org/search.json?title=\(query)"
-
-        guard let url = URL(string: urlString) else { return }
-
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            defer { isLoading = false }
-
-            guard let data = data, error == nil else {
-                print("Error fetching data: \(error?.localizedDescription ?? "Unknown error")")
-                return
-            }
-
-            do {
-                let result = try JSONDecoder().decode(OpenLibraryResponse.self, from: data)
-                DispatchQueue.main.async {
-                    books = result.docs.map {
-                        BookTTS(
-                            title: $0.title,
-                            author: $0.author_name?.first ?? "Unknown Author",
-                            coverURL: $0.cover_i != nil ? URL(string: "https://covers.openlibrary.org/b/id/\($0.cover_i!)-M.jpg") : nil
-                        )
-                    }
-                }
-            } catch {
-                print("Error decoding data: \(error)")
-            }
-        }.resume()
-    }
-
-    func handleBookSelection(book: BookTTS) {
-        DispatchQueue.main.async {
-            alertMessage = "Fetching plain text from Gutenberg..."
-            showAlert = true
-        }
-
-        fetchAndDownloadFromGutenberg(bookTitle: book.title, book: book)
-    }
-
-    func fetchAndDownloadFromGutenberg(bookTitle: String, book: BookTTS) {
-        print(bookTitle)
-        let gutenbergSearchURLString = "https://gutendex.com/books/?search=\(bookTitle)"
-        guard let gutenbergSearchURL = URL(string: gutenbergSearchURLString) else {
-            alertMessage = "Invalid URL for Gutenberg."
-            showAlert = true
+    func saveTTSBook() {
+        guard !bookName.isEmpty, let image = selectedImage, pdfUploaded, let pdfURL = pdfURL else {
+            print("Error: Missing book name, image, or PDF")
             return
         }
 
-        URLSession.shared.dataTask(with: gutenbergSearchURL) { data, response, error in
-            guard let data = data, error == nil else {
-                DispatchQueue.main.async {
-                    alertMessage = "Error fetching Gutenberg book data."
-                    showAlert = true
-                }
-                return
-            }
+        let fm = FileManager.default
+        guard let baseURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("Error: Unable to access document directory")
+            return
+        }
 
-            do {
-                let result = try JSONDecoder().decode(GutenbergResponse.self, from: data)
-                if let firstBook = result.results.first, let textDownloadURLString = firstBook.formats["text/plain"] {
-                    guard let textDownloadURL = URL(string: textDownloadURLString) else {
-                        DispatchQueue.main.async {
-                            alertMessage = "Invalid text download link for this book."
-                            showAlert = true
-                        }
-                        return
-                    }
-
-                    // Proceed to download the plain text and convert to PDF
-                    downloadAndConvertTextToPDF(downloadURL: textDownloadURL, book: book)
-                } else {
-                    DispatchQueue.main.async {
-                        alertMessage = "No plain text available for this book."
-                        showAlert = true
-                    }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    alertMessage = "Error decoding Gutenberg data."
-                    showAlert = true
-                }
-            }
-        }.resume()
-    }
-
-    func downloadAndConvertTextToPDF(downloadURL: URL, book: BookTTS) {
-        let resourcesURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let bookDirectory = resourcesURL.appendingPathComponent("TTSBooks/\(book.title)")
+        let ttsBooksURL = baseURL.appendingPathComponent("BookKeepTTSBooks")
+        let bookDirectoryURL = ttsBooksURL.appendingPathComponent(bookName)
 
         do {
-            // Create the directory for the book if it doesn't exist
-            try FileManager.default.createDirectory(at: bookDirectory, withIntermediateDirectories: true)
+            // Create the book directory
+            try fm.createDirectory(at: bookDirectoryURL, withIntermediateDirectories: true, attributes: nil)
 
-            // Download the text
-            let textData = try Data(contentsOf: downloadURL)
-            guard let text = String(data: textData, encoding: .utf8) else {
-                DispatchQueue.main.async {
-                    alertMessage = "Error decoding text content."
-                    showAlert = true
-                }
-                return
+            // Save the cover image
+            let imageURL = bookDirectoryURL.appendingPathComponent("\(bookName).png")
+            if let pngData = image.pngData() {
+                try pngData.write(to: imageURL)
             }
 
-            // Convert to PDF
-            let pdfPath = bookDirectory.appendingPathComponent("\(book.title).pdf")
-            createPDF(from: text, saveTo: pdfPath)
+            // Save the JSON data
+            let jsonURL = bookDirectoryURL.appendingPathComponent("\(bookName)_data.json")
+            let jsonData = try JSONSerialization.data(withJSONObject: ["description": description, "pageNumber": 0], options: .prettyPrinted)
+            try jsonData.write(to: jsonURL)
 
-            DispatchQueue.main.async {
-                alertMessage = "PDF downloaded successfully."
-                showAlert = true
-            }
+            // Save the PDF
+            let pdfDestinationURL = bookDirectoryURL.appendingPathComponent("\(bookName).pdf")
+            try fm.copyItem(at: pdfURL, to: pdfDestinationURL)
+
+            // Add to items for UI refresh
+            let newItem = TTSBookItem(name: bookName, image: Image(uiImage: selectedImage ?? UIImage()), description: description, path: bookDirectoryURL)
+            books.append(newItem)
+
+            // Dismiss the view
+            presentationMode.wrappedValue.dismiss()
         } catch {
-            DispatchQueue.main.async {
-                alertMessage = "Error downloading or converting text: \(error.localizedDescription)"
-                showAlert = true
-            }
+            print("Error saving TTS book: \(error.localizedDescription)")
         }
     }
-
-    func createPDF(from text: String, saveTo url: URL) {
-        let pdfMetaData = [
-            kCGPDFContextCreator: "Book Downloader",
-            kCGPDFContextAuthor: "Gutenberg"
-        ]
-        let format = UIGraphicsPDFRendererFormat()
-        format.documentInfo = pdfMetaData as [String: Any]
-
-        let pageWidth = 612.0
-        let pageHeight = 792.0
-        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight), format: format)
-
-        do {
-            try renderer.writePDF(to: url) { context in
-                context.beginPage()
-                let attributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 12)]
-                let textRect = CGRect(x: 20, y: 20, width: pageWidth - 40, height: pageHeight - 40)
-                text.draw(in: textRect, withAttributes: attributes)
-            }
-        } catch {
-            print("Could not create PDF: \(error)")
-        }
-    }
-}
-
-struct BookRow: View {
-    let book: BookTTS
-
-    var body: some View {
-        HStack {
-            if let coverURL = book.coverURL {
-                AsyncImage(url: coverURL) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                            .frame(width: 60, height: 60)
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .frame(width: 60, height: 60)
-                            .cornerRadius(8)
-                    case .failure:
-                        Image(systemName: "book")
-                            .frame(width: 60, height: 60)
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-            } else {
-                Image(systemName: "book")
-                    .frame(width: 60, height: 60)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(book.title)
-                    .font(.headline)
-                    .lineLimit(1)
-                Text(book.author)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            Spacer()
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(10)
-        .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
-    }
-}
-
-struct OpenLibraryResponse: Decodable {
-    let docs: [BookDoc]
-}
-
-struct BookDoc: Decodable {
-    let title: String
-    let author_name: [String]?
-    let cover_i: Int?
-}
-
-struct GutenbergResponse: Decodable {
-    let results: [GutenbergBook]
-}
-
-struct GutenbergBook: Decodable {
-    let title: String
-    let formats: [String: String]
 }
 
 #Preview {
-    APITESTView()
+    CombinedView(books: .constant([]))
 }
