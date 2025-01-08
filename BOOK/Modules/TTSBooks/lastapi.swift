@@ -79,17 +79,16 @@ class BookViewModel: ObservableObject {
             }
 
             // Save metadata
-            let metadata: [String: Any] = ["description": book.description, "pagenumber": 0]
+            let metadata: [String: Any] = ["description": book.description, "pageNumber": 0]
             print(book.description)
             let metadataURL = bookDir.appendingPathComponent("\(book.title)_data.json")
             let metadataData = try JSONSerialization.data(withJSONObject: metadata, options: .prettyPrinted)
             try metadataData.write(to: metadataURL)
 
             // Save text content
-            if let textData = try? Data(contentsOf: URL(string: book.textURL)!) {
-                print(book.textURL)
+            if let textData = try? Data(contentsOf: URL(string: book.textURL)!),let textString = String(data: textData, encoding: .utf8) {
                 let textURL = bookDir.appendingPathComponent("\(book.title).pdf")
-                createPDF(from: textData, to: textURL)
+                createPDF(from: textString, to: textURL)
             }
 
             print("Book saved successfully!")
