@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import PDFKit
 
 struct BookAPI: Identifiable {
     let id = UUID()
@@ -88,7 +89,7 @@ class BookViewModel: ObservableObject {
             if let textData = try? Data(contentsOf: URL(string: book.textURL)!) {
                 print(book.textURL)
                 let textURL = bookDir.appendingPathComponent("\(book.title).pdf")
-                try textData.write(to: textURL)
+                createPDF(from: textData, to: textURL)
             }
 
             print("Book saved successfully!")
@@ -96,6 +97,32 @@ class BookViewModel: ObservableObject {
             print("Error saving book: \(error)")
         }
     }
+}
+
+private func createPDF(from text: String, to url: URL) {
+    let pdfDocument = PDFDocument()
+    let pdfPage = PDFPage()
+
+    // Create a text content for the PDF
+    let pageBounds = CGRect(x: 0, y: 0, width: 612, height: 792) // Standard US Letter size in points
+    let textRect = pageBounds.insetBy(dx: 50, dy: 50) // Add some padding
+    let textStorage = NSTextStorage(string: text)
+    let textLayout = NSLayoutManager()
+    let textContainer = NSTextContainer(size: textRect.size)
+
+    textStorage.addLayoutManager(textLayout)
+    textLayout.addTextContainer(textContainer)
+
+    UIGraphicsBeginPDFContextToFile(url.path, pageBounds, nil)
+    UIGraphicsBeginPDFPage()
+
+    let currentContext = UIGraphicsGetCurrentContext()
+    currentContext?.translateBy(x: 0, y: pageBounds.height)
+    currentContext?.scaleBy(x: 1.0, y: -1.0)
+
+    textLayout.drawGlyphs(forGlyphRange: NSRange(location: 0, length: textStorage.length), at: CGPoint(x: textRect.origin.x, y: textRect.origin.y))
+
+    UIGraphicsEndPDFContext()
 }
 
 struct lastapiView: View {
