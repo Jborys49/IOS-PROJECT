@@ -1,7 +1,7 @@
 import SwiftUI
 import Combine
 
-struct Book: Identifiable {
+struct BookAPI: Identifiable {
     let id = UUID()
     let title: String
     let author: String
@@ -11,7 +11,7 @@ struct Book: Identifiable {
 }
 
 class BookViewModel: ObservableObject {
-    @Published var books: [Book] = []
+    @Published var books: [BookAPI] = []
     @Published var searchText: String = ""
     @Published var isLoading: Bool = false
 
@@ -34,7 +34,7 @@ class BookViewModel: ObservableObject {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                    let results = json["results"] as? [[String: Any]] {
 
-                    let books: [Book] = results.compactMap { result in
+                    let books: [BookAPI] = results.compactMap { result in
                         guard let title = result["title"] as? String,
                               let authors = result["authors"] as? [[String: Any]],
                               let authorName = authors.first?["name"] as? String,
@@ -44,7 +44,7 @@ class BookViewModel: ObservableObject {
                             return nil
                         }
 
-                        return Book(
+                        return BookAPI(
                             title: title,
                             author: authorName,
                             coverURL: coverURL,
@@ -63,7 +63,7 @@ class BookViewModel: ObservableObject {
         }.resume()
     }
 
-    func saveBook(_ book: Book) {
+    func saveBook(_ book: BookAPI) {
         let fileManager = FileManager.default
         guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
         let bookDir = documentsURL.appendingPathComponent("BookKeepTTSBooks/\(book.title)", isDirectory: true)
@@ -78,13 +78,15 @@ class BookViewModel: ObservableObject {
             }
 
             // Save metadata
-            let metadata: [String: Any] = ["description": book.description, "booknumber": 0]
+            let metadata: [String: Any] = ["description": book.description, "pagenumber": 0]
+            print(book.description)
             let metadataURL = bookDir.appendingPathComponent("\(book.title)_data.json")
             let metadataData = try JSONSerialization.data(withJSONObject: metadata, options: .prettyPrinted)
             try metadataData.write(to: metadataURL)
 
             // Save text content
             if let textData = try? Data(contentsOf: URL(string: book.textURL)!) {
+                print(book.textURL)
                 let textURL = bookDir.appendingPathComponent("\(book.title).pdf")
                 try textData.write(to: textURL)
             }
@@ -96,7 +98,7 @@ class BookViewModel: ObservableObject {
     }
 }
 
-struct lastapi: View {
+struct lastapiView: View {
     @StateObject private var viewModel = BookViewModel()
 
     var body: some View {

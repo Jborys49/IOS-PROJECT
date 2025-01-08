@@ -128,7 +128,7 @@ struct AddTTSBook: View {
 
             // Save the JSON data
             let jsonURL = bookDirectoryURL.appendingPathComponent("\(bookName)_data.json")
-            let jsonData = try JSONSerialization.data(withJSONObject: ["description": description, "pagenumber": 0], options: .prettyPrinted)
+            let jsonData = try JSONSerialization.data(withJSONObject: ["description": description, "pageNumber": 0], options: .prettyPrinted)
             try jsonData.write(to: jsonURL)
 
             // Save the PDF
