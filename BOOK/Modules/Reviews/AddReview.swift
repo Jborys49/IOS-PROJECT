@@ -96,7 +96,7 @@ struct AddReview: View {
                 }
             }
             
-            // Display Tags
+            // Display Tags (cant use wraphstack cus delete button
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(tags, id: \.self) { tag in

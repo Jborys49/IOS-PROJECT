@@ -56,7 +56,6 @@ struct ProfileView: View {
         }
     }
     
-    // Load profile data from BookKeepProfile directory
     func loadProfileData() {
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let profileDirectory = documentsURL.appendingPathComponent("BookKeepProfile")
@@ -79,7 +78,6 @@ struct ProfileView: View {
         }
     }
 
-    // Save profile data to BookKeepProfile directory
     func saveProfileData() {
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let profileDirectory = documentsURL.appendingPathComponent("BookKeepProfile")
@@ -108,15 +106,6 @@ struct ProfileView: View {
     }
 }
 
-// Profile Data Structure (matches JSON structure)
-struct ProfileData: Codable {
-    var username: String
-    var date: String
-    var reviews: Int
-    var goalsc: Int
-}
-
-// Preview for SwiftUI Canvas
 #Preview{
     ProfileView()
 }

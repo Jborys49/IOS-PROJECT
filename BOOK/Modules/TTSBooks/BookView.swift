@@ -1,12 +1,5 @@
 import SwiftUI
 
-struct TTSBookItem: Identifiable {
-    let id = UUID()
-    let name: String
-    let image: Image
-    let description: String
-    let path: URL
-}
 
 struct TTSBooksView: View {
     @State private var books: [TTSBookItem] = []
@@ -67,7 +60,7 @@ struct TTSBooksView: View {
                 VStack {
                     Spacer()
                     HStack {
-                        Spacer()
+                        
                         NavigationLink(destination: AddTTSView(books: $books)) {
                             Image(systemName: "plus")
                                 .font(.system(size: 30))
@@ -81,7 +74,7 @@ struct TTSBooksView: View {
                     }
                 }
             }
-            .navigationTitle("TTS Books")
+            .navigationTitle("Your Books")
             .alert(isPresented: $showDeleteConfirmation) {
                 Alert(
                     title: Text("Delete Book"),

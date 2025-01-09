@@ -1,4 +1,6 @@
 import SwiftUI
+import Combine
+import PDFKit
 
 struct AddTTSView: View {
     @State private var bookName: String = ""
@@ -8,34 +10,16 @@ struct AddTTSView: View {
     @State private var showImagePicker = false
     @State private var showPDFPicker = false
     @State private var pdfURL: URL? = nil
-    @Binding var books: [TTSBookItem] // Refreshing the view after adding the book
     @StateObject private var viewModel = BookViewModel()
-    @Environment(\.presentationMode) var presentationMode // To dismiss view
+    @Environment(\.presentationMode) var presentationMode
+    @Binding var books: [TTSBookItem]
 
     var body: some View {
-        VStack {
-            // Static Header with Save Button
-            HStack {
-                Spacer()
-                Button(action: saveTTSBook) {
-                    Image(systemName: "checkmark")
-                        .font(.largeTitle)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.green)
-                        .clipShape(Circle())
-                        .shadow(radius: 5)
-                }
-            }
-            .padding()
-            .background(Color(UIColor.systemBackground))
-            .zIndex(1) // Keeps button on top
-
+        ZStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // AddTTSBook Section
+                    // Add TTS Book Section
                     VStack(spacing: 20) {
-                        // Image Upload Section
                         Button(action: {
                             showImagePicker = true
                         }) {
@@ -61,21 +45,30 @@ struct AddTTSView: View {
                             ImagePicker(image: $selectedImage)
                         }
 
-                        // Book Name Input
                         TextField("Book Name", text: $bookName)
                             .padding()
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(8)
+                            .overlay(
+                                HStack {
+                                    Spacer()
+                                    if !bookName.isEmpty {
+                                        Button(action: { bookName = "" }) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.gray)
+                                                .padding(.trailing, 8)
+                                        }
+                                    }
+                                }
+                            )
                             .frame(maxWidth: .infinity)
 
-                        // Description Input
                         TextField("Description", text: $description)
                             .padding()
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(8)
                             .frame(maxWidth: .infinity)
 
-                        // PDF Upload Section
                         Button(action: {
                             showPDFPicker = true
                         }) {
@@ -94,65 +87,88 @@ struct AddTTSView: View {
                         }
                     }
                     .padding()
-                    .background(Color(UIColor.systemGroupedBackground))
-                    .cornerRadius(12)
 
-                    // lastapiView Section
-                    VStack {
-                        HStack {
-                            TextField("Search books", text: $viewModel.searchText)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .padding()
+                    // API Section Title
+                    Text("Or search for free books on the Gutenberg Library! - you can download the first page from this app")
+                        .font(.headline)
+                        .padding(.top)
 
-                            Button(action: {
-                                viewModel.searchBooks()
-                            }) {
-                                Text("Search")
-                            }
-                            .padding()
+                    // API Section
+                    LazyVStack {
+                        TextField("Search books", text: $viewModel.searchText)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.horizontal)
+
+                        Button(action: {
+                            viewModel.searchBooks()
+                        }) {
+                            Text("Search")
+                                .font(.headline)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 20)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
                         }
+                        .padding(.bottom)
 
                         if viewModel.isLoading {
                             ProgressView()
                                 .padding()
                         } else {
-                            ScrollView {
-                                LazyVStack {
-                                    ForEach(viewModel.books) { book in
-                                        HStack {
-                                            AsyncImage(url: URL(string: book.coverURL)) { image in
-                                                image.resizable()
-                                            } placeholder: {
-                                                Color.gray
-                                            }
-                                            .frame(width: 60, height: 80)
-                                            .cornerRadius(8)
-
-                                            VStack(alignment: .leading) {
-                                                Text(book.title)
-                                                    .font(.headline)
-
-                                                Text(book.description)
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.secondary)
-                                            }
-
-                                            Spacer()
-                                        }
-                                        .padding()
-                                        .onTapGesture {
-                                            viewModel.saveBook(book)
-                                            presentationMode.wrappedValue.dismiss()
-                                        }
+                            ForEach(viewModel.books) { book in
+                                HStack {
+                                    AsyncImage(url: URL(string: book.coverURL)) { image in
+                                        image.resizable()
+                                    } placeholder: {
+                                        Color.gray
                                     }
+                                    .frame(width: 60, height: 80)
+                                    .cornerRadius(8)
+
+                                    VStack(alignment: .leading) {
+                                        Text(book.title)
+                                            .font(.headline)
+                                        Text(book.description)
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Spacer()
+                                }
+                                .padding()
+                                .onTapGesture {
+                                    viewModel.saveBook(book){ savedBook in
+                                        // Append the new saved book to the books array
+                                        books.append(savedBook)
+                                        presentationMode.wrappedValue.dismiss()
+                                    }
+                                    presentationMode.wrappedValue.dismiss()
                                 }
                             }
                         }
                     }
                 }
-                .padding()
+                .padding(.bottom, 80) // To avoid overlapping with the button
+            }
+
+            // Fixed Button
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: saveTTSBook) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.green)
+                            .shadow(radius: 4)
+                    }
+                    .padding(.bottom, 20)
+                    .padding(.leading, 20)
+                }
             }
         }
+        .navigationTitle("Add TTS Book")
     }
 
     func saveTTSBook() {
@@ -171,29 +187,23 @@ struct AddTTSView: View {
         let bookDirectoryURL = ttsBooksURL.appendingPathComponent(bookName)
 
         do {
-            // Create the book directory
             try fm.createDirectory(at: bookDirectoryURL, withIntermediateDirectories: true, attributes: nil)
 
-            // Save the cover image
             let imageURL = bookDirectoryURL.appendingPathComponent("\(bookName).png")
             if let pngData = image.pngData() {
                 try pngData.write(to: imageURL)
             }
 
-            // Save the JSON data
             let jsonURL = bookDirectoryURL.appendingPathComponent("\(bookName)_data.json")
             let jsonData = try JSONSerialization.data(withJSONObject: ["description": description, "pageNumber": 0], options: .prettyPrinted)
             try jsonData.write(to: jsonURL)
 
-            // Save the PDF
             let pdfDestinationURL = bookDirectoryURL.appendingPathComponent("\(bookName).pdf")
             try fm.copyItem(at: pdfURL, to: pdfDestinationURL)
 
-            // Add to items for UI refresh
             let newItem = TTSBookItem(name: bookName, image: Image(uiImage: selectedImage ?? UIImage()), description: description, path: bookDirectoryURL)
             books.append(newItem)
 
-            // Dismiss the view
             presentationMode.wrappedValue.dismiss()
         } catch {
             print("Error saving TTS book: \(error.localizedDescription)")
@@ -201,6 +211,64 @@ struct AddTTSView: View {
     }
 }
 
-#Preview {
-    CombinedView(books: .constant([]))
+struct PDFPicker: UIViewControllerRepresentable {
+
+    var onPDFSelected: (URL) -> Void
+
+
+
+    func makeCoordinator() -> Coordinator {
+
+        Coordinator(self)
+
+    }
+
+
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf])
+
+        picker.delegate = context.coordinator
+
+        return picker
+
+    }
+
+
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+
+
+
+    class Coordinator: NSObject, UIDocumentPickerDelegate {
+
+        let parent: PDFPicker
+
+
+
+        init(_ parent: PDFPicker) {
+
+            self.parent = parent
+
+        }
+
+
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+
+            if let url = urls.first {
+
+                parent.onPDFSelected(url)
+
+            }
+
+        }
+
+
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {}
+
+    }
+
 }

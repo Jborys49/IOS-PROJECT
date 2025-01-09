@@ -96,7 +96,7 @@ struct AddGoalView: View {
             }
             .padding(.bottom, 80) // To avoid overlapping with the button
 
-            // Save Button in ZStack
+            // Save Button
             VStack {
                 Spacer()
                 Button(action: saveGoal) {
@@ -106,7 +106,7 @@ struct AddGoalView: View {
                         .padding()
                         .shadow(radius: 4)
                 }
-                .padding(.bottom, 20) // Add padding from the bottom
+                .padding(.bottom, 20) // Add padding from the bottom so it dont collide with contentview
             }
         }
         .navigationTitle("Add Goal")

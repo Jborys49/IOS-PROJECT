@@ -131,7 +131,7 @@ struct ReviewView: View {
                             secondaryButton: .cancel()
                         )
                     }
-                    .navigationTitle("Saved Reviews")
+                    .navigationTitle("Your Reviews")
                 }
 
                 // Floating Action Button

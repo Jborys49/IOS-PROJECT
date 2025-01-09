@@ -11,7 +11,7 @@ class AppFileManager {
         documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
     }
 
-    /// Ensures all required folders and files exist in the Documents directory
+    // Ensures all required folders and files exist in the Documents directory
     func setupDirectoriesAndFiles() {
         // Define folder names
         let folders = ["BookKeepGoals", "BookKeepReviews", "BookKeepTTSBooks"]
@@ -31,7 +31,7 @@ class AppFileManager {
         addProfileDataJSONIfNeeded(to: profileFolderURL)
     }
 
-    /// Creates a directory at the given URL if it doesn't exist
+    // Creates a directory at the given URL if it doesn't exist
     private func createDirectoryIfNeeded(at url: URL) {
         if !fileManager.fileExists(atPath: url.path) {
             do {
@@ -43,7 +43,7 @@ class AppFileManager {
         }
     }
 
-    /// Adds the default profile image if it doesn't exist
+    // Adds the default profile
     private func addProfileImageIfNeeded(to profileFolderURL: URL) {
         let profileImageURL = profileFolderURL.appendingPathComponent("profile.png")
 
@@ -62,7 +62,7 @@ class AppFileManager {
         }
     }
 
-    /// Adds the default profile data JSON file if it doesn't exist
+    //adds json
     private func addProfileDataJSONIfNeeded(to profileFolderURL: URL) {
         let profileDataURL = profileFolderURL.appendingPathComponent("profile_data.json")
 

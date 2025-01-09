@@ -1,9 +1,5 @@
 import SwiftUI
-struct Book: Identifiable {
-    let id = UUID() // To make it Identifiable for use in ForEach
-    var title: String
-    var isCompleted: Bool
-}
+
 
 struct IndGoalView: View {
     let directoryURL: URL

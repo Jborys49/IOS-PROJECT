@@ -1,25 +1,4 @@
 import SwiftUI
-struct GoalItem: Identifiable {
-    let id = UUID()
-    let name: String
-    let image: Image
-    var completed: Double
-    let startDate: Date
-    let endDate: Date
-    let url: URL
-
-}
-
-struct ItemDescription: Decodable, Encodable {
-    var books: [BookEntry]
-    var startDate: Date
-    var endDate: Date
-}
-
-struct BookEntry: Decodable, Encodable {
-    var name: String
-    var status: Bool
-}
 
 struct GoalsView: View {
     @State var items: [GoalItem] = []
