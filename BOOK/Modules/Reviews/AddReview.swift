@@ -100,25 +100,26 @@ struct AddReview: View {
             ScrollView(.horizontal) {
                 HStack {
                     ForEach(tags, id: \.self) { tag in
-                        Text(tag)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(12)
-                            .overlay(
-                                HStack {
-                                    Spacer()
-                                    Button(action: {
-                                        if let index = tags.firstIndex(of: tag) {
-                                            tags.remove(at: index)
-                                        }
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.gray)
-                                            .padding(.trailing, 5)
-                                    }
+                        HStack {
+                            // Background for the tag
+                            Text(tag)
+                                .padding(.horizontal, 5)
+                            
+                            // "x mark" button
+                            Button(action: {
+                                if let index = tags.firstIndex(of: tag) {
+                                    tags.remove(at: index)
                                 }
-                            )
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.gray)
+                                    .padding(.trailing, 5)
+                            }
+                        }
+                        .padding(.trailing, 5) // Add some spacing between tags
+                        .padding(.vertical, 5)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(12)
                     }
                 }
             }
