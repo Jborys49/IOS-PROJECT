@@ -81,6 +81,7 @@ struct GoalsView: View {
                                 .shadow(radius: 5)
                         }
                         .padding()
+                        .accessibilityIdentifier("Goal Add Link")
                         Spacer()
                     }
                 

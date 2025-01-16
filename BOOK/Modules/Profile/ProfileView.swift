@@ -38,6 +38,7 @@ struct ProfileView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(8)
                     .padding(.horizontal, 40)
+                    .accessibilityIdentifier("Profile NameChange TextField")
 
                 // Display Profile Information
                 VStack(alignment: .leading, spacing: 10) {

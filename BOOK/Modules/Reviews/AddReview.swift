@@ -5,7 +5,7 @@ struct AddReview: View {
     @State private var description: String = ""
     @State private var tags: [String] = []
     @State private var newTag: String = ""
-    @State private var selectedImage: UIImage? = nil
+    @State private var selectedImage: UIImage? = UIImage = UIImage(named: "BookIcon")!
     @State private var showImagePicker = false
     @Environment(\.presentationMode) var presentationMode // To dismiss view
     @Binding var items:[DirectoryItem]//refreshing the thingimajig when creation is over
@@ -55,6 +55,7 @@ struct AddReview: View {
                     }
                 )
                 .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("Review Add Name")
             
             // Description Input
             TextField("Description", text: $description)
@@ -74,6 +75,7 @@ struct AddReview: View {
                     }
                 )
                 .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("Review Add Desc")
             
             // Add Tag Section
             HStack {
@@ -81,6 +83,7 @@ struct AddReview: View {
                     .padding()
                     .background(Color.gray.opacity(0.2))
                     .cornerRadius(8)
+                    .accessibilityIdentifier("Review Add Tag Text")
                 
                 Button(action: {
                     if !newTag.isEmpty {
@@ -94,6 +97,7 @@ struct AddReview: View {
                         .background(Color.green)
                         .clipShape(Circle())
                 }
+                .accessibilityIdentifier("Review Add Tag Button")
             }
             
             // Display Tags (cant use wraphstack cus delete button
@@ -136,6 +140,7 @@ struct AddReview: View {
                     .clipShape(Circle())
                     .shadow(radius: 5)
             }
+            .accessibilityIdentifier("Review Save")
         }
         .padding()
         .navigationTitle("Add Review")

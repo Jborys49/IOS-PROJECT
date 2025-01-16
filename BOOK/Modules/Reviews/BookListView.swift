@@ -149,6 +149,7 @@ struct ReviewView: View {
                                 .shadow(radius: 5)
                         }
                         .padding()
+                        .accessibilityIdentifier("Review Add Link")
                         Spacer()
                     }
                 }

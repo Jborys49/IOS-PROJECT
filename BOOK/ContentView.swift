@@ -17,15 +17,19 @@ struct ContentView: View {
             Tab("Your Books", systemImage: "book") {
                 TTSBooksView()
             }
+            .accessibilityIdentifier("TTS Tab")
             Tab("Your Reviews", systemImage: "bookmark") {
                 ReviewView()
             }
+            .accessibilityIdentifier("Review Tab")
             Tab("Your Goals", systemImage: "checkmark.square") {
                 GoalsView()
             }
+            .accesibilityIdentifier("Goals Tab")
             Tab("Profile", systemImage: "person.circle") {
                 ProfileView()
             }
+            .accessibilityIdentifier("Profile Tab")
         }
         .accentColor(.orange)
     }
