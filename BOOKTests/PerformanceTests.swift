@@ -7,9 +7,11 @@ final class PerformanceTests: XCTestCase {
         viewModel.searchText = "Pride and prejudice"
 
         let startTime = Date()
-        viewModel.SearchBooks() {books in
+        viewModel.searchBooks()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0){
         let elapsedTime = Date().timeIntervalSince(startTime)
-        SCTAssert(elapsedTime<10,"Load too long")
+        XCTAssert(elapsedTime<10,"Load too long")
+            XCTAssert(viewModel.books.isEmpty, "API Books not updated")
         expectation.fulfill()
         }
 
@@ -22,9 +24,10 @@ final class PerformanceTests: XCTestCase {
         let tester = ProfileView()
         let startTime = Date()
 
-        tester.loadProfileData() {
+        tester.loadProfileData()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0){
             let elapsedTime = Date().timeIntervalSince(startTime)
-            SCTAssert(elapsedTime<1,"Load too long")
+            XCTAssert(elapsedTime<1,"Load too long")
             expectation.fulfill()
         }
         wait(for: [expectation],timeout: 1)
