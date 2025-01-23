@@ -41,24 +41,46 @@ final class UnitTests: XCTestCase {
     }
     
     func testSaveBook_ValidBook() throws {
-            // Mock a valid book
-            let book = BookAPI(
-                title: "Test Book",
-                author: "Test Author",
-                coverURL: "https://example.com/test_cover.jpg",
-                textURL: "https://example.com/test_book.txt",
-                description: "Author: Test Author"
-            )
+            // Load the BookIcon from the assets because if i dont provide a legit image the program shits itself
+                guard let bookIconImage = UIImage(named: "BookIcon"),
+                      let bookIconData = bookIconImage.pngData() else {
+                    XCTFail("Failed to load BookIcon from assets")
+                    return
+                }
 
-            let expectation = self.expectation(description: "Save book should complete successfully")
+                // Save the image temporarily to create a valid URL
+                let tempDirectory = FileManager.default.temporaryDirectory
+                let bookIconURL = tempDirectory.appendingPathComponent("BookIcon.png")
+                try bookIconData.write(to: bookIconURL)
 
-            viewModel.saveBook(book) { savedBook in
-                XCTAssertEqual(savedBook.name, book.title, "Saved book title should match original book title.")
-                XCTAssertEqual(savedBook.description, book.description, "Saved book description should match original book description.")
-                expectation.fulfill()
-            }
+                // Mock a valid book with the local URL for the cover
+                let book = BookAPI(
+                    title: "Test Book",
+                    author: "Test Author",
+                    coverURL: bookIconURL.absoluteString, // Use the local URL as the coverURL
+                    textURL: "https://example.com/test_book.txt",
+                    description: "Author: Test Author"
+                )
 
-            waitForExpectations(timeout: 10, handler: nil)
+                let expectation = self.expectation(description: "Save book should complete successfully")
+
+                // Call saveBook and validate the result
+                viewModel.saveBook(book) { savedBook in
+                    XCTAssertEqual(savedBook.name, book.title, "Saved book title should match original book title.")
+                    XCTAssertEqual(savedBook.description, book.description, "Saved book description should match original book description.")
+
+                    // Verify the saved book's image matches the original asset
+                    if let savedImageData = try? Data(contentsOf: savedBook.path.appendingPathComponent("\(book.title).png")),
+                       let savedImage = UIImage(data: savedImageData) {
+                        XCTAssertEqual(savedImage.pngData(), bookIconData, "Saved book cover image should match the original image.")
+                    } else {
+                        XCTFail("Failed to verify the saved book cover image")
+                    }
+
+                    expectation.fulfill()
+                }
+
+                waitForExpectations(timeout: 10, handler: nil)
         }
 
         func testFileCreator() throws {
@@ -72,6 +94,42 @@ final class UnitTests: XCTestCase {
         }
 
         func testItemDecoding() throws {
-                
-            }
+              // Example JSON to test decoding
+                      let json = """
+                      {
+                          "books": [
+                              {
+                                  "name": "Book One",
+                                  "status": true
+                              },
+                              {
+                                  "name": "Book Two",
+                                  "status": false
+                              }
+                          ],
+                          "startDate": "2025-01-01T00:00:00Z",
+                          "endDate": "2025-12-31T23:59:59Z"
+                      }
+                      """.data(using: .utf8)!
+
+                      // Expected date format is ISO8601
+                      let decoder = JSONDecoder()
+                      decoder.dateDecodingStrategy = .iso8601
+
+                      do {
+                          // Decode the JSON into ItemDescription
+                          let itemDescription = try decoder.decode(ItemDescription.self, from: json)
+
+                          // Assertions to verify the decoded data
+                          XCTAssertEqual(itemDescription.books.count, 2)
+                          XCTAssertEqual(itemDescription.books[0].name, "Book One")
+                          XCTAssertEqual(itemDescription.books[0].status, true)
+                          XCTAssertEqual(itemDescription.books[1].name, "Book Two")
+                          XCTAssertEqual(itemDescription.books[1].status, false)
+                          XCTAssertEqual(itemDescription.startDate, ISO8601DateFormatter().date(from: "2025-01-01T00:00:00Z"))
+                          XCTAssertEqual(itemDescription.endDate, ISO8601DateFormatter().date(from: "2025-12-31T23:59:59Z"))
+                      } catch {
+                          XCTFail("Failed to decode ItemDescription: \(error)")
+                      }
+        }
 }

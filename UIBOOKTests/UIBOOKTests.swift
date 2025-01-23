@@ -74,8 +74,11 @@ final class UIBOOKTests: XCTestCase {
         let save = app.buttons["Review Save"]
         save.tap()
 
+        let fileManager = FileManager.default
+        let documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let books = documents.appendingPathComponent("BookKeepReviews")
+        XCTAssertTrue(fileManager.fileExists(atPath:documents.appendingPathComponent("TESTER").path), "Review")
         //chek whether it got added
         //XCTAssertEqual(test+1, filteredItems.count, "The number of items displayed in the ReviewView is incorrect.")
-        XCTAssert(true)
     }
 }
