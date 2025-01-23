@@ -49,6 +49,7 @@ final class UIBOOKTests: XCTestCase {
 
     func testCreateReview(){
         let app = XCUIApplication()
+        app.launchArguments.append("ui-testing")
         app.launch()
 
         let ReviewTab = app.tabBars.buttons["Review Tab"]
@@ -75,10 +76,25 @@ final class UIBOOKTests: XCTestCase {
         save.tap()
 
         let fileManager = FileManager.default
-        let documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let books = documents.appendingPathComponent("BookKeepReviews")
-        XCTAssertTrue(fileManager.fileExists(atPath:documents.appendingPathComponent("TESTER").path), "Review")
+        let documentsPath = getDocumentsDirectoryPathFromLogs()
+        let books = documentsPath.appendingPathComponent("BookKeepReviews")
+        XCTAssertTrue(fileManager.fileExists(atPath:documents.appendingPathComponent("TESTER").path), "Review not created")
         //chek whether it got added
         //XCTAssertEqual(test+1, filteredItems.count, "The number of items displayed in the ReviewView is incorrect.")
+    }
+    //frankly a STUPID FUCKING SOLUTION
+    private func getDocumentsDirectoryPathFromLogs() -> String {
+        let app = XCUIApplication()
+        let logs = app.debugDescription // Capture logs
+        guard let range = logs.range(of: "DOCUMENTS_DIRECTORY: ") else {
+            XCTFail("Failed to find DOCUMENTS_DIRECTORY in logs")
+            return ""
+        }
+
+        let startIndex = logs.index(range.upperBound, offsetBy: 0)
+        let endIndex = logs[startIndex...].firstIndex(of: "\n") ?? logs.endIndex
+        let documentsPath = String(logs[startIndex..<endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return documentsPath
     }
 }

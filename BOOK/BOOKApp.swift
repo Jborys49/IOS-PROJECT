@@ -14,6 +14,13 @@ struct BOOKApp: App {
     init() {
         // Trigger the file setup process
         AppFileManager.shared.setupDirectoriesAndFiles()
+
+        #if DEBUG
+        if CommandLine.arguments.contains("ui-testing") {
+            let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            print("DOCUMENTS_DIRECTORY: \(documentsURL.path)")
+        }
+        #endif
     }
     var body: some Scene {
         WindowGroup {
