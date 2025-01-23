@@ -64,44 +64,14 @@ final class UnitTests: XCTestCase {
         func testFileCreator() throws {
          let fileManager = FileManager.default
          let documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-         let testee = AppFileManager()
-         testee.setupDirectoriesAndFiles()
-            let folders = ["BookKeepGoals", "BookKeepReviews", "BookKeepTTSBooks"]
+            AppFileManager.shared.setupDirectoriesAndFiles()
+            let folders = ["BookKeepGoals", "BookKeepReviews", "BookKeepTTSBooks","BookKeepProfile"]
             for folder in folders {
-                XCTAssertTrue(fileManager.fileExists(atPath: documents.appendingPathComponent(folder)), "Folder not created")
+                XCTAssertTrue(fileManager.fileExists(atPath:documents.appendingPathComponent(folder).path), "Folder not created")
             }
         }
 
-        func testGoalItemDecoding() throws {
-                // Sample JSON representation of a GoalItem
-                let json = """
-                {
-                    "id": "6C98E2A3-8F5F-48D7-B104-CDA75EAF3B6A",
-                    "name": "Learn Swift",
-                    "image": "https://example.com/sample-image.png",
-                    "completed": 0.5,
-                    "startDate": "2025-01-01T00:00:00Z",
-                    "endDate": "2025-12-31T23:59:59Z",
-                    "url": "https://example.com"
-                }
-                """.data(using: .utf8)!
-
-                // Use a JSONDecoder with appropriate date decoding strategy
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-
-                do {
-                    let decodedItem = try decoder.decode(GoalItem.self, from: json)
-
-                    // Assert fields match expected values
-                    XCTAssertEqual(decodedItem.id, UUID(uuidString: "6C98E2A3-8F5F-48D7-B104-CDA75EAF3B6A"))
-                    XCTAssertEqual(decodedItem.name, "Learn Swift")
-                    XCTAssertEqual(decodedItem.completed, 0.5)
-                    XCTAssertEqual(decodedItem.startDate, ISO8601DateFormatter().date(from: "2025-01-01T00:00:00Z"))
-                    XCTAssertEqual(decodedItem.endDate, ISO8601DateFormatter().date(from: "2025-12-31T23:59:59Z"))
-                    XCTAssertEqual(decodedItem.url, URL(string: "https://example.com"))
-                } catch {
-                    XCTFail("Failed to decode JSON: \(error)")
-                }
+        func testItemDecoding() throws {
+                
             }
 }

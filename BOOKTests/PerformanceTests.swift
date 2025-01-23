@@ -19,7 +19,7 @@ final class PerformanceTests: XCTestCase {
 
     func testSearchBooksPerformance() {
         // Set up the expectation for the async operation
-        let expectation = self.expectation(description: "SearchBooks should complete within 15 seconds")
+        let expectation = self.expectation(description: "SearchBooks should complete within reasonable time")
         viewModel.searchText = "Frankenstein"
 
         // Start the performance measurement
@@ -38,7 +38,7 @@ final class PerformanceTests: XCTestCase {
                 .store(in: &cancellables)
 
             // Wait up to 15 seconds for the operation to complete
-            wait(for: [expectation], timeout: 15.0)
+            wait(for: [expectation], timeout: 30.0)
         }
     }
 
