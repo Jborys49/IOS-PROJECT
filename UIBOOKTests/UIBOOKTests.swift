@@ -29,11 +29,11 @@ final class UIBOOKTests: XCTestCase {
         
         // Define the tab bar buttons
         let TTSTab = app.tabBars.buttons["TTS Tab"]
-        let GoalTab = app.tabBars.buttons["Goal Tab"] // Fix name to match identifier
+        let GoalTab = app.tabBars.buttons["Goal Tab"]
         let ReviewTab = app.tabBars.buttons["Review Tab"]
         let ProfileTab = app.tabBars.buttons["Profile Tab"]
         
-        // Wait for elements to appear to ensure UI is fully loaded
+        // Wait for elements to appear to ensure UI is fully loaded(was fucked by intro)
         XCTAssertTrue(TTSTab.waitForExistence(timeout: 5), "Tab to TTS Book does not exist")
         XCTAssertTrue(GoalTab.waitForExistence(timeout: 5), "Tab to Goals does not exist")
         XCTAssertTrue(ReviewTab.waitForExistence(timeout: 5), "Tab to Reviews does not exist")
@@ -46,42 +46,13 @@ final class UIBOOKTests: XCTestCase {
         }
     }
     
-    func testExistAllViews(){
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
-        let TTSTab = app.tabBars.buttons["TTS Tab"]
-        let GoalTab = app.tabBars.buttons["Goal Tab"]
-        let ReviewTab = app.tabBars.buttons["Review Tab"]
-        let ProfileTab = app.tabBars.buttons["Profile Tab"]
 
-        //Check whether app launches with views availible (might get fucked by intro)
-        XCTAssertTrue(TTSTab.exists, "Tab to TTS Book not existant")
-        XCTAssertTrue(GoalTab.exists, "Tab to Goals not existant")
-        XCTAssertTrue(ReviewTab.exists, "Tab to Reviews not existant")
-        XCTAssertTrue(ProfileTab.exists, "Tab to profile not existant")
-
-        ProfileTab.tap()
-        //checking whether the profile view exists correctly
-        let textField = app.textFields["Profile NameChange TextField"]
-        XCTAssertTrue(textField.exists, "Text field in profile does not exist")
-
-        TTSTab.tap()
-        XCTAssertTrue(app.buttons["TTS Add Link"].exists, "button in tts does not exist")
-
-        GoalTab.tap()
-        XCTAssertTrue(app.buttons["Goal Add Link"].exists, "button in goal does not exist")
-
-        ReviewTab.tap()
-        XCTAssertTrue(app.buttons["Review Add Link"].exists, "button in Review does not exist")
-    }
-
-    func createReview(){
+    func testCreateReview(){
         let app = XCUIApplication()
         app.launch()
 
         let ReviewTab = app.tabBars.buttons["Review Tab"]
-        XCTAssertTrue(ReviewTab.exists, "Tab to Reviews not existant")
+        XCTAssertTrue(ReviewTab.waitForExistence(timeout: 5), "Tab to Reviews does not exist")
         ReviewTab.tap()
         //check number of reviews
         //let test=app..count
@@ -89,12 +60,15 @@ final class UIBOOKTests: XCTestCase {
         app.buttons["Review Add Link"].tap()
         //create review
         let tagText = app.textFields["Review Add Tag Text"]
+        tagText.tap()
         tagText.typeText("Fantasy")
         let tagAdd = app.buttons["Review Add Tag Button"]
         tagAdd.tap()
         let descText = app.textFields["Review Add Desc"]
+        descText.tap()
         descText.typeText("PLEASE WORK PLEASSE PLEASE PLEASE")
         let nameText = app.textFields["Review Add Name"]
+        nameText.tap()
         nameText.typeText("TESTER")
         //save review
         let save = app.buttons["Review Save"]
