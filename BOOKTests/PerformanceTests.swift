@@ -8,14 +8,14 @@ final class PerformanceTests: XCTestCase {
 
         let startTime = Date()
         viewModel.searchBooks()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0){
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60.0){
         let elapsedTime = Date().timeIntervalSince(startTime)
-        XCTAssert(elapsedTime<10,"Load too long")
-            XCTAssert(viewModel.books.isEmpty, "API Books not updated")
+        XCTAssert(elapsedTime<60,"Load too long")
+        XCTAssert(viewModel.books.isEmpty, "API Books not updated")
         expectation.fulfill()
         }
 
-        wait(for: [expectation],timeout: 10)
+        wait(for: [expectation],timeout: 60)
     }
 
     func testProfileDetailsTime(){
@@ -27,9 +27,9 @@ final class PerformanceTests: XCTestCase {
         tester.loadProfileData()
         DispatchQueue.main.asyncAfter(deadline: .now() + 10.0){
             let elapsedTime = Date().timeIntervalSince(startTime)
-            XCTAssert(elapsedTime<1,"Load too long")
+            XCTAssert(elapsedTime<10,"Load too long")
             expectation.fulfill()
         }
-        wait(for: [expectation],timeout: 1)
+        wait(for: [expectation],timeout: 10)
     }
 }

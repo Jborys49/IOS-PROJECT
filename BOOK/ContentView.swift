@@ -25,7 +25,7 @@ struct ContentView: View {
             Tab("Your Goals", systemImage: "checkmark.square") {
                 GoalsView()
             }
-            .accesibilityIdentifier("Goals Tab")
+            .accessibilityIdentifier("Goals Tab")
             Tab("Profile", systemImage: "person.circle") {
                 ProfileView()
             }

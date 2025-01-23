@@ -29,5 +29,6 @@ final class UIBOOKTestsLaunchTests: XCTestCase {
         attachment.name = "Launch Screen"
         attachment.lifetime = .keepAlways
         add(attachment)
+        XCTAssertTrue(true)
     }
 }

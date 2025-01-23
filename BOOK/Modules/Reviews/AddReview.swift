@@ -5,7 +5,7 @@ struct AddReview: View {
     @State private var description: String = ""
     @State private var tags: [String] = []
     @State private var newTag: String = ""
-    @State private var selectedImage: UIImage? = UIImage = UIImage(named: "BookIcon")!
+    @State private var selectedImage: UIImage? = UIImage(named: "BookIcon")!
     @State private var showImagePicker = false
     @Environment(\.presentationMode) var presentationMode // To dismiss view
     @Binding var items:[DirectoryItem]//refreshing the thingimajig when creation is over
