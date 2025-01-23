@@ -132,4 +132,34 @@ final class UnitTests: XCTestCase {
                           XCTFail("Failed to decode ItemDescription: \(error)")
                       }
         }
+
+        func testRecalculateProgress() {
+                // Mock data
+                let directoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                var progressUpdated: (URL, Double)? = nil
+
+                // Mock `updateProgress` closure
+                let updateProgressMock: (URL, Double) -> Void = { url, progress in
+                    progressUpdated = (url, progress)
+                }
+
+                // Create a testable instance of `IndGoalView`
+                var testView = IndGoalView(directoryURL: directoryURL, updateProgress: updateProgressMock)
+
+                // Prepare test data
+                testView.books = [
+                    Book(title: "Book 1", isCompleted: true),
+                    Book(title: "Book 2", isCompleted: false),
+                    Book(title: "Book 3", isCompleted: true)
+                ]
+
+                // Call the method under test
+                testView.recalculateProgress()
+
+                // Assert that progress is calculated correctly
+                let expectedProgress = 2.0 / 3.0
+                XCTAssertNotNil(progressUpdated, "updateProgress should have been called.")
+                XCTAssertEqual(progressUpdated?.0, directoryURL, "Directory URL should match.")
+                XCTAssertEqual(progressUpdated?.1, expectedProgress, accuracy: 0.001, "Progress calculation should be accurate.")
+            }
 }
