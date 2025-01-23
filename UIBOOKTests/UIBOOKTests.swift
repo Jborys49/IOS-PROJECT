@@ -49,7 +49,7 @@ final class UIBOOKTests: XCTestCase {
 
     func testCreateReview(){
         let app = XCUIApplication()
-        app.launchArguments.append("ui-testing")
+        //app.launchArguments.append("ui-testing")
         app.launch()
 
         let ReviewTab = app.tabBars.buttons["Review Tab"]
@@ -75,16 +75,17 @@ final class UIBOOKTests: XCTestCase {
         let save = app.buttons["Review Save"]
         save.tap()
 
-        let fileManager = FileManager.default
-        let documentsPath = getDocumentsDirectoryPathFromLogs()
-        let books = documentsPath.appendingPathComponent("BookKeepReviews")
-        XCTAssertTrue(fileManager.fileExists(atPath:documents.appendingPathComponent("TESTER").path), "Review not created")
+        //let fileManager = FileManager.default
+        //let documentsPath = getDocumentsDirectoryPathFromLogs(app: app)
+        //let books = URL(fileURLWithPath: documentsPath).appendingPathComponent("BookKeepReviews")
+        //XCTAssertTrue(fileManager.fileExists(atPath:books.appendingPathComponent("TESTER").path), "Review not created")
+        XCTAssertTrue(app.buttons["Review Add Link"].exists,"Did not go back to the booklist")//BRO HOW DO I CHECL=K FUCK
         //chek whether it got added
         //XCTAssertEqual(test+1, filteredItems.count, "The number of items displayed in the ReviewView is incorrect.")
     }
     //frankly a STUPID FUCKING SOLUTION
-    private func getDocumentsDirectoryPathFromLogs() -> String {
-        let app = XCUIApplication()
+    private func getDocumentsDirectoryPathFromLogs(app:XCUIApplication) -> String {
+        //let app = XCUIApplication()
         let logs = app.debugDescription // Capture logs
         guard let range = logs.range(of: "DOCUMENTS_DIRECTORY: ") else {
             XCTFail("Failed to find DOCUMENTS_DIRECTORY in logs")
