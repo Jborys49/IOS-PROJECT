@@ -1,6 +1,47 @@
 import XCTest
+import Combine
 @testable import BOOK
 final class PerformanceTests: XCTestCase {
+    var viewModel: BookViewModel!
+    var cancellables: Set<AnyCancellable>!
+
+    override func setUp() {
+        super.setUp()
+        viewModel = BookViewModel()
+        cancellables = []
+    }
+
+    override func tearDown() {
+        viewModel = nil
+        cancellables = nil
+        super.tearDown()
+    }
+
+    func testSearchBooksPerformance() {
+        // Set up the expectation for the async operation
+        let expectation = self.expectation(description: "SearchBooks should complete within 15 seconds")
+        viewModel.searchText = "Frankenstein"
+
+        // Start the performance measurement
+        self.measure {
+            // Trigger the searchBooks method
+            viewModel.searchBooks()
+
+            // Wait for the books to be updated
+            viewModel.$books
+                .dropFirst() // Ignore the initial empty array
+                .sink { books in
+                    if !books.isEmpty {
+                        expectation.fulfill() // Fulfill the expectation when books are updated
+                    }
+                }
+                .store(in: &cancellables)
+
+            // Wait up to 15 seconds for the operation to complete
+            wait(for: [expectation], timeout: 15.0)
+        }
+    }
+
     func testApiSpeed() {
        let expectation = self.expectation(description:"api load in reasonable side")
         var viewModel = BookViewModel()
