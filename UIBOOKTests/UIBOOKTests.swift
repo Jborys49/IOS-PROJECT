@@ -21,7 +21,31 @@ final class UIBOOKTests: XCTestCase {
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
-
+    
+    func testExistViews() {
+        // Launch the app
+        let app = XCUIApplication()
+        app.launch()
+        
+        // Define the tab bar buttons
+        let TTSTab = app.tabBars.buttons["TTS Tab"]
+        let GoalTab = app.tabBars.buttons["Goal Tab"] // Fix name to match identifier
+        let ReviewTab = app.tabBars.buttons["Review Tab"]
+        let ProfileTab = app.tabBars.buttons["Profile Tab"]
+        
+        // Wait for elements to appear to ensure UI is fully loaded
+        XCTAssertTrue(TTSTab.waitForExistence(timeout: 5), "Tab to TTS Book does not exist")
+        XCTAssertTrue(GoalTab.waitForExistence(timeout: 5), "Tab to Goals does not exist")
+        XCTAssertTrue(ReviewTab.waitForExistence(timeout: 5), "Tab to Reviews does not exist")
+        XCTAssertTrue(ProfileTab.waitForExistence(timeout: 5), "Tab to Profile does not exist")
+        
+        // Optional debug output if test fails
+        if !TTSTab.exists || !GoalTab.exists || !ReviewTab.exists || !ProfileTab.exists {
+            print("App debug description:")
+            print(app.debugDescription)
+        }
+    }
+    
     func testExistAllViews(){
         // UI tests must launch the application that they test.
         let app = XCUIApplication()

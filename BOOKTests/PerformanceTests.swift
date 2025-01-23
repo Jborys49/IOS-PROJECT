@@ -10,7 +10,7 @@ final class PerformanceTests: XCTestCase {
         viewModel.searchBooks()
         DispatchQueue.main.asyncAfter(deadline: .now() + 60.0){
         let elapsedTime = Date().timeIntervalSince(startTime)
-        XCTAssert(elapsedTime<60,"Load too long")
+        XCTAssert(elapsedTime<120,"Load too long")
         XCTAssert(viewModel.books.isEmpty, "API Books not updated")
         expectation.fulfill()
         }

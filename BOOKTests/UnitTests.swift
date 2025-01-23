@@ -8,10 +8,10 @@ final class UnitTests: XCTestCase {
             viewModel = BookViewModel()
         }
 
-        override func tearDownWithError() throws {
-            viewModel = nil
-            try super.tearDownWithError()
-        }
+    override func tearDownWithError() throws {
+        viewModel = nil
+        try super.tearDownWithError()
+    }
     func testSearchBooks_EmptySearchText() {
             viewModel.searchText = ""
 

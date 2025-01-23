@@ -14,22 +14,32 @@ struct ContentView: View {
     }
     var body: some View {
         TabView {
-            Tab("Your Books", systemImage: "book") {
-                TTSBooksView()
-            }
-            .accessibilityIdentifier("TTS Tab")
-            Tab("Your Reviews", systemImage: "bookmark") {
-                ReviewView()
-            }
-            .accessibilityIdentifier("Review Tab")
-            Tab("Your Goals", systemImage: "checkmark.square") {
-                GoalsView()
-            }
-            .accessibilityIdentifier("Goals Tab")
-            Tab("Profile", systemImage: "person.circle") {
-                ProfileView()
-            }
-            .accessibilityIdentifier("Profile Tab")
+            TTSBooksView()
+                .tabItem {
+                    Label("Your Books", systemImage: "book")
+                        .accessibilityIdentifier("TTS Tab")
+                }
+                            
+            ReviewView()
+                .tabItem {
+                    Label("Your Reviews", systemImage: "bookmark")
+                        .accessibilityIdentifier("Review Tab")
+                }
+                
+            
+            GoalsView()
+                .tabItem {
+                    Label("Your Goals", systemImage: "checkmark.square")
+                        .accessibilityIdentifier("Goal Tab")
+                }
+                
+            
+            ProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.circle")
+                        .accessibilityIdentifier("Profile Tab")
+                }
+                
         }
         .accentColor(.orange)
     }
