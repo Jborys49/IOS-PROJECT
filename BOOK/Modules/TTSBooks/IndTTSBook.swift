@@ -68,7 +68,7 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         isPlayingTTS = true
         let utterance = AVSpeechUtterance(string: currentPageContent!)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-        utterance.rate = 0.5 // Adjust the speed as needed
+        utterance.rate = 0.5
         currentUtterance = utterance
         synthesizer.speak(utterance)
     }
@@ -104,7 +104,6 @@ class TTSBookManager: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
         }
     }
 
-    // AVSpeechSynthesizerDelegate Methods
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
          if isPlayingTTS {
             isPlayingTTS=false

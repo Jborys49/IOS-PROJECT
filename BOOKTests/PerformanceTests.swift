@@ -21,10 +21,10 @@ final class PerformanceTests: XCTestCase {
        //let expectation = self.expectation(description:"api load in reasonable side")
         viewModel.searchText = "Pride and Prejudice"
 
-        // Expectation for asynchronous operation
+        
         let expectation = self.expectation(description: "api should return in reasonable time")
 
-        // Call the searchBooks method
+        
         viewModel.searchBooks()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) { // Provide a buffer for network call
@@ -39,7 +39,7 @@ final class PerformanceTests: XCTestCase {
     func testProfileDetailsTime() throws{
         let profileView = ProfileView()
 
-        // Measure the performance of the loadProfileData() function
+        
         measure(metrics: [XCTClockMetric()]) {
             // Perform data loading
             let expectation = XCTestExpectation(description: "Profile data should load within 10 seconds")

@@ -107,7 +107,7 @@ struct GoalsView: View {
     func loadGoals() {
         let fm = FileManager.default
         
-        //perhaps works and i dont have to use the damn documents directory
+        
         guard let baseDataURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return
         }

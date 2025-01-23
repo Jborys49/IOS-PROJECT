@@ -11,7 +11,7 @@ class AppFileManager {
         documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
     }
 
-    // Ensures all required folders and files exist in the Documents directory
+    
     func setupDirectoriesAndFiles() {
         // Define folder names
         let folders = ["BookKeepGoals", "BookKeepReviews", "BookKeepTTSBooks"]

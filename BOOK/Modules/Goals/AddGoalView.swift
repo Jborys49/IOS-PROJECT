@@ -3,12 +3,12 @@ import SwiftUI
 struct AddGoalView: View {
     @State private var goalName: String = ""
     @State private var goalEndDate: Date = Date()
-    @State private var books: [String] = [] // List of books
-    @State private var newBook: String = "" // Text for new book input
-    @State private var goalImage: UIImage? = nil // Goal image
-    @State private var showImagePicker = false // To show the image picker
+    @State private var books: [String] = [] 
+    @State private var newBook: String = ""
+    @State private var goalImage: UIImage? = nil
+    @State private var showImagePicker = false
 
-    @Environment(\.presentationMode) var presentationMode // To dismiss the view
+    @Environment(\.presentationMode) var presentationMode
     @Binding var items: [GoalItem]
 
     var body: some View {

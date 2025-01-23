@@ -5,9 +5,8 @@ struct IndGoalView: View {
     let directoryURL: URL
     let updateProgress: (URL, Double) -> Void // Callback to update progress in parent
 
-    @State private var books: [Book] = []
+    @State var books: [Book] = []
     @State private var image: Image? = nil
-
     var body: some View {
         VStack {
             if let image = image {
@@ -77,7 +76,7 @@ struct IndGoalView: View {
 
                         // Map JSON books to Book objects
 
-                        books = decoded.books.map { Book(title: $0.name, isCompleted: $0.status) }
+                        books = decoded.books.map { Book(id:UUID(),title: $0.name, isCompleted: $0.status) }
 
                     } catch {
 
@@ -128,7 +127,7 @@ struct IndGoalView: View {
         recalculateProgress()
     }
 
-    func recalculateProgress() {
+    func recalculateProgress()->Double {
         let total = books.count
         let completed = books.filter { $0.isCompleted }.count
         let progress = total > 0 ? Double(completed) / Double(total) : 0.0
@@ -158,5 +157,6 @@ struct IndGoalView: View {
             }
         }
         updateProgress(directoryURL, progress)
+        return progress
     }
 }

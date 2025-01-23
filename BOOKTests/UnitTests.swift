@@ -41,7 +41,7 @@ final class UnitTests: XCTestCase {
     }
     
     func testSaveBook_ValidBook() throws {
-            // Load the BookIcon from the assets because if i dont provide a legit image the program shits itself
+            // Load the BookIcon from the assets because if i dont provide a legit image the program ***** itself
                 guard let bookIconImage = UIImage(named: "BookIcon"),
                       let bookIconData = bookIconImage.pngData() else {
                     XCTFail("Failed to load BookIcon from assets")
@@ -133,33 +133,36 @@ final class UnitTests: XCTestCase {
                       }
         }
 
-        func testRecalculateProgress() {
-                // Mock data
-                let directoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                var progressUpdated: (URL, Double)? = nil
-
-                // Mock `updateProgress` closure
-                let updateProgressMock: (URL, Double) -> Void = { url, progress in
-                    progressUpdated = (url, progress)
-                }
-
-                // Create a testable instance of `IndGoalView`
-                var testView = IndGoalView(directoryURL: directoryURL, updateProgress: updateProgressMock)
-
-                // Prepare test data
-                testView.books = [
-                    Book(title: "Book 1", isCompleted: true),
-                    Book(title: "Book 2", isCompleted: false),
-                    Book(title: "Book 3", isCompleted: true)
-                ]
-
-                // Call the method under test
-                testView.recalculateProgress()
-
-                // Assert that progress is calculated correctly
-                let expectedProgress = 2.0 / 3.0
-                XCTAssertNotNil(progressUpdated, "updateProgress should have been called.")
-                XCTAssertEqual(progressUpdated?.0, directoryURL, "Directory URL should match.")
-                XCTAssertEqual(progressUpdated?.1, expectedProgress, accuracy: 0.001, "Progress calculation should be accurate.")
-            }
+    func testRecalculateProgress() {
+        // Mock data
+        let directoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
+        var progressUpdated: (URL, Double)? = nil
+        let updateProgressMock: (URL, Double) -> Void = { url, progress in
+            progressUpdated = (url, progress)
+        }
+        //print("BRUH"+updateProgressMock.2)
+        var testView = IndGoalView(directoryURL: directoryURL, updateProgress: updateProgressMock)
+        
+        // Prepare test data
+        let books = [
+            Book(id:UUID(),title: "Book 1", isCompleted: true),
+            Book(id:UUID(),title: "Book 2", isCompleted: false),
+            Book(id:UUID(),title: "Book 3", isCompleted: true)
+        ]
+        testView.books = books.map { Book(id:UUID(),title: $0.title, isCompleted: $0.isCompleted) }
+        print("HERE")
+        
+        print(testView.books.count)
+        print(testView.books.filter { $0.isCompleted }.count)
+        
+        // Call the method under test
+        var progress=testView.recalculateProgress()
+        
+        // Assert that progress is calculated correctly
+        let expectedProgress = 2.0 / 3.0
+        XCTAssertNotNil(progressUpdated, "updateProgress should have been called.")
+        XCTAssertEqual(progressUpdated?.0, directoryURL, "Directory URL should match.")
+        XCTAssertEqual(progress, expectedProgress, accuracy: 0.001, "Progress calculation should be accurate.")
+    }
+            
 }

@@ -8,7 +8,7 @@ struct AddReview: View {
     @State private var selectedImage: UIImage? = UIImage(named: "BookIcon")!
     @State private var showImagePicker = false
     @Environment(\.presentationMode) var presentationMode // To dismiss view
-    @Binding var items:[DirectoryItem]//refreshing the thingimajig when creation is over
+    @Binding var items:[DirectoryItem]//Refreshing the thingimajig when creation is over
     var body: some View {
         VStack(spacing: 20) {
             // Image Upload Section
@@ -109,7 +109,7 @@ struct AddReview: View {
                             Text(tag)
                                 .padding(.horizontal, 5)
                             
-                            // "x mark" button
+                            // Delete button
                             Button(action: {
                                 if let index = tags.firstIndex(of: tag) {
                                     tags.remove(at: index)

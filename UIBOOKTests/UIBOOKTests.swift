@@ -33,13 +33,16 @@ final class UIBOOKTests: XCTestCase {
         let ReviewTab = app.tabBars.buttons["Review Tab"]
         let ProfileTab = app.tabBars.buttons["Profile Tab"]
         
-        // Wait for elements to appear to ensure UI is fully loaded(was fucked by intro)
+        
         XCTAssertTrue(TTSTab.waitForExistence(timeout: 5), "Tab to TTS Book does not exist")
         XCTAssertTrue(GoalTab.waitForExistence(timeout: 5), "Tab to Goals does not exist")
         XCTAssertTrue(ReviewTab.waitForExistence(timeout: 5), "Tab to Reviews does not exist")
         XCTAssertTrue(ProfileTab.waitForExistence(timeout: 5), "Tab to Profile does not exist")
-        
-        // Optional debug output if test fails
+        TTSTab.tap()
+        GoalTab.tap()
+        ReviewTab.tap()
+        ProfileTab.tap()
+       
         if !TTSTab.exists || !GoalTab.exists || !ReviewTab.exists || !ProfileTab.exists {
             print("App debug description:")
             print(app.debugDescription)
@@ -83,7 +86,7 @@ final class UIBOOKTests: XCTestCase {
         //chek whether it got added
         //XCTAssertEqual(test+1, filteredItems.count, "The number of items displayed in the ReviewView is incorrect.")
     }
-    //frankly a STUPID FUCKING SOLUTION
+    //frankly a STUPID  SOLUTION
     private func getDocumentsDirectoryPathFromLogs(app:XCUIApplication) -> String {
         //let app = XCUIApplication()
         let logs = app.debugDescription // Capture logs

@@ -25,11 +25,11 @@ struct BOOKApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-            //if isVideoFinished {
-            //    ContentView()
-            //} else {
-            //    IntroVideoView(isVideoFinished: $isVideoFinished)
-            //}
+            if isVideoFinished {
+                ContentView()
+            } else {
+                IntroVideoView(isVideoFinished: $isVideoFinished)
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ struct ReviewView: View {
     @State private var loaded = false
     @State private var showAlert = false
     @State private var itemToDelete: DirectoryItem? = nil
-    //filter vars
+    //Filter vars
     @State private var searchText: String = ""
     @State private var activeFilters: [String] = []
 

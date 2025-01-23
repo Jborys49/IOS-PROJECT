@@ -103,7 +103,7 @@ class BookViewModel: ObservableObject {
 
 private func createPDF(from text: String, to url: URL) {
 
-    let pageBounds = CGRect(x: 0, y: 0, width: 612, height: 792) // Standard US Letter size in points
+    let pageBounds = CGRect(x: 0, y: 0, width: 612, height: 792)
 
     let textRect = pageBounds.insetBy(dx: 20, dy: 20)
 

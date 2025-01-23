@@ -26,7 +26,7 @@ struct TTSBookItem: Identifiable {
     let path: URL
 }
 
-//position in GoalsView
+//Position in GoalsView
 struct GoalItem: Identifiable {
     let id = UUID()
     let name: String
@@ -38,7 +38,7 @@ struct GoalItem: Identifiable {
 
 }
 
-//the json file for goals
+//The JSON file for goals
 struct ItemDescription: Decodable, Encodable {
     var books: [BookEntry]
     var startDate: Date
@@ -50,14 +50,14 @@ struct BookEntry: Decodable, Encodable {
     var status: Bool
 }
 
-//goals book
+//Goals book inside IndGoalView
 struct Book: Identifiable {
-    let id = UUID()
+    let id :UUID
     var title: String
     var isCompleted: Bool
 }
 
-// Profile Data (json)
+// Profile Data (JSON)
 struct ProfileData: Codable {
     var username: String
     var date: String
@@ -65,7 +65,7 @@ struct ProfileData: Codable {
     var goalsc: Int
 }
 
-//pdf viewer for ttsbooks
+//PDF viewer
 struct PDFViewUI: UIViewRepresentable {
     let pdfDocument: PDFDocument
     @Binding var currentPageIndex: Int
