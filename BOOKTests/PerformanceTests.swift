@@ -43,20 +43,22 @@ final class PerformanceTests: XCTestCase {
     }
 
     func testApiSpeed() {
-       let expectation = self.expectation(description:"api load in reasonable side")
-        var viewModel = BookViewModel()
-        viewModel.searchText = "Pride and prejudice"
+       //let expectation = self.expectation(description:"api load in reasonable side")
+        viewModel.searchText = "Pride and Prejudice"
 
-        let startTime = Date()
+        // Expectation for asynchronous operation
+        let expectation = self.expectation(description: "api should return in reasonable time")
+
+        // Call the searchBooks method
         viewModel.searchBooks()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 60.0){
-        let elapsedTime = Date().timeIntervalSince(startTime)
-        XCTAssert(elapsedTime<120,"Load too long")
-        XCTAssert(viewModel.books.isEmpty, "API Books not updated")
-        expectation.fulfill()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { // Provide a buffer for network call
+            XCTAssertFalse(self.viewModel.books.isEmpty, "Books array should not be empty for valid search text.")
+            //XCTAssertFalse(self.viewModel.isLoading, "isLoading should be set to false after fetching data.")
+            expectation.fulfill()
         }
 
-        wait(for: [expectation],timeout: 60)
+        waitForExpectations(timeout: 10, handler: nil)
     }
 
     func testProfileDetailsTime(){
@@ -65,12 +67,12 @@ final class PerformanceTests: XCTestCase {
         let tester = ProfileView()
         let startTime = Date()
 
-        tester.loadProfileData()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0){
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20.0){
+            tester.loadProfileData()
             let elapsedTime = Date().timeIntervalSince(startTime)
             XCTAssert(elapsedTime<10,"Load too long")
             expectation.fulfill()
         }
-        wait(for: [expectation],timeout: 10)
+        waitForExpectations(timeout: 10, handler: nil)
     }
 }
